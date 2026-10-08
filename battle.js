@@ -99,7 +99,8 @@ function syncEvpapiySession(){
   }else{evpSession.level=level;evpSession.maxHp=maxHp;evpSession.hp=clamp(evpSession.hp,1,maxHp)}
 }
 
-function energyCost(base){let extra=0;if(hasStatus('tired'))extra+=2;if(Number(sourceState?.needs?.water??100)<=20)extra+=1;return Math.max(0,base+extra)}
+function energyCost(base){let extra=0;if(hasStatus('tired'))extra+=2;if(Number(sourceState?.needs?.water??100)<=20)extra+=1;if(hasStatus('scared')&&!sourceState?.flags?.calmPrepared&&heroStat('pofigism')<3)extra+=1;return Math.max(0,base+extra)}
+function pigeonCost(){const r=sourceState?.relationships?.evpapiy?.values||{};return energyCost(Number(r.trust||0)>=4&&Number(r.offense||0)<4?8:12)}
 function randomIntent(b){if(b?.pigeon?.available&&battleRandom(b)<.14)return{...INTENTS.pigeon};const pool=[INTENTS.lunge,INTENTS.grab,INTENTS.heavy,INTENTS.sweep];return{...pool[Math.floor(battleRandom(b)*pool.length)]}}
 
 function initialItems(){
@@ -131,6 +132,7 @@ function freshBattle(){
     actionMode:storyOptions?.actionMode||'normal',battleNotes:Array.isArray(storyOptions?.battleNotes)?[...storyOptions.battleNotes]:[],
     turn:1,result:null,mode:'actions',phase:'hero',enemyTarget:null,enemyIntent:null,
     firstDamageAction:true,dodging:false,guarding:false,blindTurns:0,angryOnionTurns:0,stunTurns:0,
+    preparedDefense:Boolean(sourceState?.flags?.threatPrepared||sourceState?.flags?.equipmentChecked||sourceState?.memories?.world?.dangerRead),
     pigeonThrown:false,pigeonUsed:false,pigeonTargetTurns:0,sunsetUsed:false,
     lastImpact:'',impactKind:'',consumed:{},knifeDestroyed:false,enemyReaction:null,enemyReactionUntil:0,
     pigeon:{level:evpSession.level,maxHp:evpSession.maxHp,hp:evpSession.hp,available:pigeonAvailable,recovering,retreated:false,offended:evpSession.offended},
@@ -174,10 +176,13 @@ function preEnemyPhase(){
 
 function resolveEnemyAttack(target,intent){
   let hitChance=Number(intent?.hit||.82)*Number(battle?.enemyHitMult||1);if(battle.blindTurns>0){hitChance*=.48;battle.blindTurns-=1}
+  const prepared=target==='hero'&&battle.preparedDefense;
+  if(prepared){hitChance*=heroStat('attention')>=3?.75:.9;battle.preparedDefense=false;addLog('Завчасно помітили напад: перший удар менш небезпечний.')}
   if(target==='hero'&&battle.dodging){const agility=clamp(.45+heroStat('agility')*.035,.45,.9);hitChance*=1-(agility*Number(intent?.dodgePower??.7))}
   let hit=false,damage=0;
   if(battleRandom()<hitChance){
     hit=true;const min=Number(intent?.min||13),max=Number(intent?.max||17);let raw=Math.max(1,Math.round((min+Math.floor(battleRandom()*(Math.max(0,max-min)+1)))*Number(battle?.enemyDamageMult||1)));
+    if(prepared)raw=Math.max(1,raw-4);
     if(target==='hero'&&battle.guarding){raw=Math.max(1,Math.round(raw*.55));addLog('Прикрились · удар слабший.')}
     if(target==='pigeon'&&battle.pigeon.available){damage=hurtPigeon(raw);battle.lastImpact=`ЄВПАПІЮ -${damage} HP`;battle.impactKind='pigeon'}
     else{damage=Math.max(1,raw-armor());battle.heroHp=clamp(battle.heroHp-damage,0,battle.heroMax);addLog(`Ви: -${damage} HP`);battle.lastImpact=`ВАМ -${damage} HP`;battle.impactKind='hero'}
@@ -212,14 +217,18 @@ function finishHeroAction(){
 
 function triggerShedKnife(){
   const dmg=physicalDamage(14);hurtEnemy(dmg,'Ніж');battle.knifeDestroyed=true;consume('knife',1);addLog('НІЖ ЗНИЩЕНО');setCreatureReaction('hit',620);
-  battle.mode='enemy';battle.phase='reaction';battle.lastImpact='';renderBattle();clearPhaseTimer();
-  phaseTimer=setTimeout(()=>{
-    clearCreatureReaction();battle.phase='enemy';renderBattle();
-    phaseTimer=setTimeout(()=>{
-      const dmgHero=40;battle.heroHp=clamp(battle.heroHp-dmgHero,0,battle.heroMax);battle.lastImpact=`ВАМ -${dmgHero} HP`;battle.impactKind='hero';battle.phase='impact';addLog(`Вас вʼєбало об сарай: -${dmgHero} HP`);renderBattle();overlay?.classList.add('hero-hit');
-      phaseTimer=setTimeout(()=>{overlay?.classList.remove('hero-hit');battle.result=battle.heroHp<=0?'lose':'knockout';battle.mode='result';battle.phase='done';renderBattle()},850);
-    },700);
-  },620);
+  battle.mode='enemy';battle.phase='reaction';battle.lastImpact='';battle.scriptedKnife='attackPending';renderBattle();clearPhaseTimer();
+  phaseTimer=setTimeout(advanceShedKnife,620);
+}
+function advanceShedKnife(){
+  clearPhaseTimer();
+  if(battle.scriptedKnife==='attackPending'){
+    clearCreatureReaction();battle.phase='enemy';battle.scriptedKnife='impactPending';renderBattle();phaseTimer=setTimeout(advanceShedKnife,700);
+  }else if(battle.scriptedKnife==='impactPending'){
+    battle.heroHp=clamp(battle.heroHp-40,0,battle.heroMax);battle.lastImpact='ВАМ -40 HP';battle.impactKind='hero';battle.phase='impact';battle.scriptedKnife='donePending';addLog('Вас вʼєбало об сарай: -40 HP');renderBattle();overlay?.classList.add('hero-hit');phaseTimer=setTimeout(advanceShedKnife,850);
+  }else if(battle.scriptedKnife==='donePending'){
+    overlay?.classList.remove('hero-hit');battle.result=battle.heroHp<=0?'lose':'knockout';battle.mode='result';battle.phase='done';delete battle.scriptedKnife;renderBattle();
+  }
 }
 
 function actKnife(){const cost=energyCost(7);if(!spend(cost)){renderBattle();return}if(battleKind==='story'&&battle.storyId==='shedCreature')return triggerShedKnife();hurtEnemy(physicalDamage(14),'Ніж');setCreatureReaction('hit');finishHeroAction()}
@@ -227,8 +236,8 @@ function actDodge(){const cost=energyCost(hasStatus('hangover')?10:8);if(!spend(
 function actGuard(){const cost=energyCost(5);if(!spend(cost)){renderBattle();return}battle.guarding=true;addLog('Ви прикриваєтесь і чекаєте удару.');finishHeroAction()}
 function actBrace(){battle.heroEnergy=0;battle.guarding=false;addLog('Сил на маневр нема. Ви стискаєтесь і приймаєте удар.');finishHeroAction()}
 function actPrayer(){const cost=energyCost(3);if(!spend(cost)){renderBattle();return}battle.dodging=true;addLog('Ви молитесь далі й стараєтесь не отримати по єбалу.');finishHeroAction()}
-function actPigeon(){if(!battle.pigeon.available)return;const cost=energyCost(10);if(!spend(cost)){renderBattle();return}battle.pigeonThrown=true;battle.pigeonUsed=true;battle.pigeonTargetTurns=1;if(battle.actionMode==='survival'){addLog('Євпапій відволік ТРУПОСМЕРДА на себе.');finishHeroAction();return}const ep=sourceState?.companions?.evpapiy?.progression||{};const dmg=Math.max(1,Math.round((8+Number(ep.attack||1)*2+Number(ep.aggression||1))*Number(battle?.pigeonDamageMult||1)));hurtEnemy(dmg,'Євпапій');setCreatureReaction('hit');finishHeroAction()}
-function actSunset(){if(!battle.pigeon.available)return;const cost=energyCost(6);if(!spend(cost)){renderBattle();return}battle.sunsetUsed=true;battle.pigeonUsed=true;battle.pigeonTargetTurns=1;hurtEnemy(Math.max(1,Math.ceil(battle.enemyHp/2)),'ЗАКАТ ПРЄЗРЄНІЯ');setCreatureReaction('hit');finishHeroAction()}
+function actPigeon(){if(!battle.pigeon.available)return;const cost=pigeonCost();if(!spend(cost)){renderBattle();return}battle.pigeonThrown=true;battle.pigeonUsed=true;battle.pigeonTargetTurns=1;const ep=sourceState?.companions?.evpapiy?.progression||{};if(battle.actionMode==='survival'){if(Number(ep.attack||1)>=3)battle.blindTurns=1;addLog('Євпапій відволік ТРУПОСМЕРДА на себе.');finishHeroAction();return}const dmg=Math.max(1,Math.round((8+Number(ep.attack||1)*2+Number(ep.aggression||1))*Number(battle?.pigeonDamageMult||1)));hurtEnemy(dmg,'Євпапій');setCreatureReaction('hit');finishHeroAction()}
+function actSunset(){if(!battle.pigeon.available)return;const cost=energyCost(6);if(!spend(cost)){renderBattle();return}battle.sunsetUsed=true;battle.pigeonUsed=true;battle.pigeonTargetTurns=1;if(battle.actionMode==='survival'){battle.stunTurns=1;addLog('ЗАКАТ ПРЄЗРЄНІЯ: ворог втратив один напад.')}else hurtEnemy(Math.max(1,Math.ceil(battle.enemyHp/2)),'ЗАКАТ ПРЄЗРЄНІЯ');setCreatureReaction('hit');finishHeroAction()}
 function actHeal(){if(Number(battle.items.medkit||0)<=0||battle.heroHp>=battle.heroMax)return;battle.items.medkit-=1;consume('medkit',1);const before=battle.heroHp;battle.heroHp=clamp(battle.heroHp+25,0,battle.heroMax);addLog(`Аптечка: +${battle.heroHp-before} HP`);battle.mode='actions';finishHeroAction()}
 function actEatSalo(){
   if(Number(sourceState?.needs?.satiety??100)>40||Number(battle.items.salo||0)<=0)return;
@@ -272,33 +281,37 @@ function throwableRack(){const xs=availableThrowables();if(!xs.length)return'<di
 
 function renderActionArea(){
   if(battle.mode==='enemy')return'<div class="battle-enemy-wait">ВОРОГ АТАКУЄ</div>';
-  if(battle.heroEnergy<energyCost(5))return `<div class="battle-actions">${actionButton('СТИСНУТИСЬ · БЕЗ ЗАХИСТУ','brace')}${Number(battle.items.medkit||0)>0&&battle.heroHp<battle.heroMax?actionButton('ЛІКУВАТИСЬ','heal'):''}</div>`;
+  const fallback=battle.heroEnergy<energyCost(5)?actionButton('СТИСНУТИСЬ · БЕЗ ЗАХИСТУ','brace'):'';
+  const food=Number(sourceState?.needs?.satiety??100)<=40&&Number(battle.items.salo||0)>0?actionButton(`ЗʼЇСТИ САЛО · 🥓 ×${battle.items.salo}`,'eat-salo'):'';
   if(battle.actionMode==='prayer'){
-    return `<div class="battle-actions">${actionButton('МОЛИТИСЬ ДАЛІ','pray-continue',{disabled:battle.heroEnergy<energyCost(3)})}${actionButton('ВІДСКОЧИТИ','dodge',{disabled:battle.heroEnergy<energyCost(hasStatus('hangover')?10:8)})}</div>`;
+    return `<div class="battle-actions">${fallback}${food}${actionButton('МОЛИТИСЬ ДАЛІ','pray-continue',{disabled:battle.heroEnergy<energyCost(3)})}${actionButton('ВІДСКОЧИТИ','dodge',{disabled:battle.heroEnergy<energyCost(hasStatus('hangover')?10:8)})}${Number(battle.items.medkit||0)>0&&battle.heroHp<battle.heroMax?actionButton('ЛІКУВАТИСЬ','heal'):''}</div>`;
   }
   if(battle.mode==='items'){
     const noEnergy=battle.heroEnergy<energyCost(4),xs=availableThrowables();
     return `<div class="battle-actions battle-items">${xs.map(([key,d])=>actionButton(`${d.icon} ${d.name} ×${battle.items[key]}`,`item-${key}`,{disabled:noEnergy})).join('')}${actionButton('НАЗАД','items-back',{extra:'ghost'})}</div>`;
   }
   if(battle.actionMode==='survival'){
-    const dodgeCost=energyCost(hasStatus('hangover')?10:8),guardCost=energyCost(5),pigeonCost=energyCost(10),pigeonAvailable=battle.pigeon.available;
+    const dodgeCost=energyCost(hasStatus('hangover')?10:8),guardCost=energyCost(5),birdCost=pigeonCost(),pigeonAvailable=battle.pigeon.available;
     return `<div class="battle-actions">
+      ${fallback}${food}
       ${actionButton('ВІДСКОЧИТИ','dodge',{disabled:battle.heroEnergy<dodgeCost})}
       ${actionButton('ПРИКРИТИСЬ','guard',{disabled:battle.heroEnergy<guardCost})}
       ${actionButton('КИНУТИ ПРЕДМЕТ','items',{disabled:!availableThrowables().length||battle.heroEnergy<energyCost(4)})}
       ${Number(battle.items.medkit||0)>0?actionButton(`ЛІКУВАТИСЬ · 🩹 ×${battle.items.medkit}`,'heal',{disabled:battle.heroHp>=battle.heroMax}):''}
-      ${pigeonAvailable&&!battle.pigeonThrown?actionButton('ЄВПАПІЙ, ВІДВОЛІЧИ ЙОГО','pigeon',{disabled:battle.heroEnergy<pigeonCost}):''}
+      ${pigeonAvailable&&!battle.pigeonThrown?actionButton('ЄВПАПІЙ, ВІДВОЛІЧИ ЙОГО','pigeon',{disabled:battle.heroEnergy<birdCost}):''}
+      ${pigeonAvailable&&!battle.sunsetUsed&&sourceState?.unlocks?.sunsetContempt?actionButton('ЗАКАТ ПРЄЗРЄНІЯ','sunset',{disabled:battle.heroEnergy<energyCost(6),extra:'special'}):''}
     </div>`;
   }
-  const knifeCost=energyCost(7),dodgeCost=energyCost(hasStatus('hangover')?10:8),pigeonCost=energyCost(10),sunsetCost=energyCost(6),pigeonAvailable=battle.pigeon.available;
+  const knifeCost=energyCost(7),dodgeCost=energyCost(hasStatus('hangover')?10:8),birdCost=pigeonCost(),sunsetCost=energyCost(6),pigeonAvailable=battle.pigeon.available;
   const hasKnife=battleKind==='test'||itemCount(sourceState,'knife')-Number(battle.consumed.knife||0)>0;
   return `<div class="battle-actions">
+    ${fallback}
     ${actionButton('ВʼЄБАТИ НОЖЕМ','knife',{disabled:!hasKnife||battle.heroEnergy<knifeCost})}
     ${actionButton('ВІДСКОЧИТИ','dodge',{disabled:battle.heroEnergy<dodgeCost})}
     ${actionButton('КИНУТИ ПРЕДМЕТ','items',{disabled:!availableThrowables().length||battle.heroEnergy<energyCost(4)})}
     ${Number(battle.items.medkit||0)>0?actionButton(`ЛІКУВАТИСЬ · 🩹 ×${battle.items.medkit}`,'heal',{disabled:battle.heroHp>=battle.heroMax}):''}
-    ${Number(sourceState?.needs?.satiety??100)<=40&&Number(battle.items.salo||0)>0?actionButton(`ЗʼЇСТИ САЛО · 🥓 ×${battle.items.salo}`,'eat-salo'):''}
-    ${pigeonAvailable&&!battle.pigeonThrown?actionButton('КИНУТИ ЄВПАПІЄМ','pigeon',{disabled:battle.heroEnergy<pigeonCost}):''}
+    ${food}
+    ${pigeonAvailable&&!battle.pigeonThrown?actionButton('КИНУТИ ЄВПАПІЄМ','pigeon',{disabled:battle.heroEnergy<birdCost}):''}
     ${pigeonAvailable&&!battle.sunsetUsed&&(battleKind==='test'||sourceState?.unlocks?.sunsetContempt)?actionButton('ЗАКАТ ПРЄЗРЄНІЯ','sunset',{disabled:battle.heroEnergy<sunsetCost,extra:'special'}):''}
   </div>`;
 }
@@ -369,6 +382,10 @@ function renderBattle(){
 function applyBattleToStoryState(){
   let s=clone(normalizeState(sourceState));
   delete s.pendingBattle;s.health=clamp(battle.heroHp,0,100);s.needs.energy=clamp(battle.heroEnergy,0,100);
+  delete s.flags.threatPrepared;delete s.flags.equipmentChecked;delete s.flags.calmPrepared;
+  if(s.memories?.world)delete s.memories.world.dangerRead;
+  s.memories.combat=s.memories.combat||{};
+  s.memories.combat[battle.storyId||'encounter']={outcome:battle.result,usedPigeon:battle.pigeonUsed,sunset:battle.sunsetUsed,consumed:clone(battle.consumed),chapter:s.chapter};
   const fightMinutes=Math.max(3,Math.min(15,Math.max(1,Number(battle.turn||1))*2));
   const blackoutMinutes=battle.result==='knockout'?20:0;
   const timed=executeAction(s,{id:'story_battle_time095q',minutes:fightMinutes+blackoutMinutes,activity:blackoutMinutes?'rest':'light'});
@@ -461,7 +478,8 @@ export async function openStoryBattle(state,options={}){
   await showBattleHelpOnce095j();overlay.classList.remove('hidden');overlay.setAttribute('aria-hidden','false');document.body.classList.add('battle-open');
   const result=new Promise(resolve=>{storyResolver=resolve});renderBattle();
   if(saved&&battle.mode==='enemy'){
-    if(battle.phase==='impact'||battle.phase==='enemy-resolve')finishTurnAfterEnemy();
+    if(battle.scriptedKnife)advanceShedKnife();
+    else if(battle.phase==='impact'||battle.phase==='enemy-resolve')finishTurnAfterEnemy();
     else if(battle.phase==='enemy'){const target=battle.enemyTarget||battle.enemyIntent.target;resolveEnemyAttack(target,battle.enemyIntent);finishTurnAfterEnemy()}
     else{clearCreatureReaction();startEnemyPhase()}
   }

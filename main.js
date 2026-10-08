@@ -1,6 +1,7 @@
 import {CHAPTER_META,chapterOf} from './chapters.js';
 import {exportBackup,importBackup,validateBackup} from './storage.js?v=096b';
-import {syncActor,activeActor,worldActions,performWorldAction,locationContext,PHASE_LABELS,timePhase} from './world.js';
+import {syncActor,activeActor,worldActions,performWorldAction,leaveItem,locationContext,PHASE_LABELS,timePhase} from './world.js';
+import {supplementalScene,routeNext,entryGameplay} from './gameplay.js';
 import {STAT_KEYS,STAT_LABELS,STAT_DESCRIPTIONS} from './config.js?v=096b';
 import {STATUS_DEFS,CLOTHES,ITEM_DEFS} from './data.js?v=096b';
 import {createInitialState,normalizeState,formatTime,threatInfo,thermal,equipmentTotals,equip,statModifiers,effectiveStat,itemCount,assignQuickSlot,useItem,executeAction,previewAction,addItem,spendHeroPoint,spendEvpPoint,addHeroXp,addEvpXp} from './engine.js?v=096b';
@@ -13,7 +14,7 @@ import {openStoryBattle} from './battle.js?v=096b';
 
 function getGameScene(state){
   const id=state?.story?.sceneId||state?.scene||'intro';
-  return CHAPTER3_SCENES[id]||CHAPTER2_SCENES[id]||CHAPTER1_SCENES[id]||getChapter1Scene(state);
+  return supplementalScene(id)||CHAPTER3_SCENES[id]||CHAPTER2_SCENES[id]||CHAPTER1_SCENES[id]||getChapter1Scene(state);
 }
 
 const $=s=>document.querySelector(s);
@@ -287,9 +288,11 @@ async function ensureSceneEntered(scene){
   const onEnter=resolveSceneValue(scene.onEnter||[],G)||[];
   const r=executeAction(G,{id:`enter_${id}`,effects:[...world,...onEnter]});
   G=r.state;
+  const gameplay=entryGameplay(G,scene);G=gameplay.state;
   G.story.entered=[...new Set([...G.story.entered,id])];
   G.story.sceneId=id;G.scene=id;
   notifyEvents(r.events);
+  notifyEvents(gameplay.events);
   clearSfx();
   for(const fx of scene.sfxOnEnter||[])sfxTimers.push(setTimeout(()=>audioManager.playEffect(fx.id,{volume:fx.volume||1}),fx.delay||0));
   await persist();
@@ -351,6 +354,7 @@ function renderStage(scene){
 function resolveChoices(scene){const xs=resolveSceneValue(scene.choices||[],G)||[];return xs.filter(c=>c&&(!c.showIf||c.showIf(G)))}
 async function choose(choice){
   if(!G||G.health<=0||actionBusy)return;
+  if(choice.menu){openMenu(choice.menu);return}
   actionBusy=true;
   try{
   await audioManager.unlock();
@@ -369,7 +373,7 @@ async function choose(choice){
     return;
   }
 
-  if(choice.next&&G.health>0){G.story.sceneId=choice.next;G.scene=choice.next}
+  if(choice.next&&G.health>0){const next=routeNext(G,choice.next);G.story.sceneId=next;G.scene=next}
   await persist();await renderGame();window.scrollTo({top:0,behavior:'instant'});
 }finally{actionBusy=false}
 }
@@ -449,9 +453,10 @@ function renderJournal(){
 function renderInventory(){
   const root=$('#menuContent');
   const filtered=G.inventory.filter(s=>inventoryCategory==='all'||ITEM_DEFS[s.id]?.category===inventoryCategory);
-  root.innerHTML=`<div class="section-title"><h2>Інвентар</h2><span>${G.inventory.length}/16 слотів</span></div><div class="category-tabs">${categories.map(c=>`<button data-cat="${esc(c)}" class="${inventoryCategory===c?'active':''}">${c==='all'?'Все':esc(c)}</button>`).join('')}</div><div class="item-grid">${filtered.length?filtered.map(s=>{const d=ITEM_DEFS[s.id]||{};return `<article class="item-card"><div class="item-icon">${d.icon||'◻️'}</div><div class="item-copy"><b>${esc(d.name||s.id)}</b><span>${esc(d.description||'')}</span><small>${esc(d.category||'')} · ×${s.qty}</small><div class="item-actions">${d.useEffects?.length?`<button data-use="${s.id}">Використати</button>`:''}<button data-slot="0" data-item="${s.id}">1</button><button data-slot="1" data-item="${s.id}">2</button><button data-slot="2" data-item="${s.id}">3</button></div></div></article>`}).join(''):'<div class="empty-state">Тут поки пусто.</div>'}</div>`;
+  root.innerHTML=`<div class="section-title"><h2>Інвентар</h2><span>${G.inventory.length}/16 слотів</span></div><div class="category-tabs">${categories.map(c=>`<button data-cat="${esc(c)}" class="${inventoryCategory===c?'active':''}">${c==='all'?'Все':esc(c)}</button>`).join('')}</div><div class="item-grid">${filtered.length?filtered.map(s=>{const d=ITEM_DEFS[s.id]||{};return `<article class="item-card"><div class="item-icon">${d.icon||'◻️'}</div><div class="item-copy"><b>${esc(d.name||s.id)}</b><span>${esc(d.description||'')}</span><small>${esc(d.category||'')} · ×${s.qty}</small><div class="item-actions">${d.useEffects?.length?`<button data-use="${s.id}">Використати</button>`:''}${G.importantItems.includes(s.id)?'':`<button data-leave="${s.id}">Відкласти ×1</button>`}<button data-slot="0" data-item="${s.id}">1</button><button data-slot="1" data-item="${s.id}">2</button><button data-slot="2" data-item="${s.id}">3</button></div></div></article>`}).join(''):'<div class="empty-state">Тут поки пусто.</div>'}</div>`;
   root.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{inventoryCategory=b.dataset.cat;renderInventory()});
   root.querySelectorAll('[data-use]').forEach(b=>b.onclick=async()=>{const r=useItem(G,b.dataset.use);if(!r.used)return;G=r.state;notifyEvents(r.events);await persist();await renderGame();renderInventory()});
+  root.querySelectorAll('[data-leave]').forEach(b=>b.onclick=async()=>{if(actionBusy)return;actionBusy=true;try{const r=leaveItem(G,b.dataset.leave);if(!r.accepted)return;G=r.state;await persist();await renderGame();toast('ВІДКЛАДЕНО','Річ можна забрати назад у розділі «Місце».')}finally{actionBusy=false}});
   root.querySelectorAll('[data-slot]').forEach(b=>b.onclick=async()=>{assignQuickSlot(G,Number(b.dataset.slot),b.dataset.item);await persist();renderQuickSlots();renderInventory();toast('ШВИДКИЙ СЛОТ',`Поставлено в слот ${Number(b.dataset.slot)+1}`)});
 }
 
@@ -466,10 +471,10 @@ function renderClothes(){
   const root=$('#menuContent'),tot=equipmentTotals(G);
   const equippedIds=Object.values(G.equipment||{}).filter(id=>CLOTHES[id]);
   const ownedIds=[...new Set([...(Array.isArray(G.ownedClothes)?G.ownedClothes:[]),...equippedIds])].filter(id=>CLOTHES[id]);
-  if(G.flags?.localClothes){
+  if(activeActor(G)==='stepan'&&G.flags?.localClothes){
     for(const id of ['local_shirt','local_vest','local_pants','boots'])if(CLOTHES[id]&&!ownedIds.includes(id))ownedIds.push(id);
   }
-  if(!ownedIds.length){
+  if(!ownedIds.length&&activeActor(G)==='stepan'){
     for(const id of ['modern_shirt','modern_jacket','modern_pants','modern_boots'])if(CLOTHES[id])ownedIds.push(id);
   }
   root.innerHTML=`<div class="section-title"><h2>Шмотки</h2></div><div class="clothes-total"><span><b>Броня</b> ${tot.armor}</span><span><b>Тепло</b> ${tot.warmth}</span><span><b>Захист від дощу</b> ${tot.rainProtection}</span></div><div class="clothes-shell"><div class="clothes-hero"><img src="${heroForClothes()}" alt="Герой"><div class="equipped-list">${equippedIds.map(id=>`<span>${esc(CLOTHES[id].name)}</span>`).join('')}</div></div><div class="clothes-list">${ownedIds.map(id=>{const d=CLOTHES[id];const on=G.equipment?.[d.slot]===id;return `<article class="clothes-card ${on?'equipped':''}"><b>${esc(d.name)}</b>${d.note?`<span>${esc(d.note)}</span>`:''}<small>${esc(clothingBonusText(d))}</small><button data-equip="${id}" ${on?'disabled':''}>${on?'Вдягнено':'Вдягнути'}</button></article>`}).join('')}</div></div>`;
@@ -553,6 +558,8 @@ function sleepMessage(place,hours,cow){
 
 async function doSleep(hours){
   if(!G||G.health<=0||!locationContext(G,getGameScene(G)).safe||actionBusy){toast('ЗАРАЗ НЕ ДО СНУ','Спершу вийдіть із небезпеки й завершіть поточну подію.');return}
+  actionBusy=true;
+  try{
   const place=sleepPlace();
   const cow=place.key==='barn'&&Math.random()<.05;
   const effects=cow?[{type:'statusAdd',id:'cowLicked'}]:[];
@@ -568,6 +575,7 @@ async function doSleep(hours){
   await persist();
   await renderGame();
   toast('ВИ ПОСПАЛИ',lastSleepMessage);
+  }finally{actionBusy=false}
 }
 
 function renderSleep(){

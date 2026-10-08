@@ -6,7 +6,15 @@ const profile=s=>Object.fromEntries(PROFILE_KEYS.map(k=>[k,clone(s[k]??(k==='mon
 export function activeActor(s){return s.activeActor||'stepan'}
 export function syncActor(state){
   const s=clone(state),wanted=chapterOf(s)===6?'evpapiy':'stepan',current=activeActor(s);
-  if(current===wanted)return s;
+  if(current===wanted){
+    if(wanted==='evpapiy'){
+      const bird=s.companions.evpapiy,p=bird.progression;
+      bird.hp=Math.round(s.health/100*bird.maxHp);
+      s.stats={strength:{level:p.attack},attention:{level:2+p.level},agility:{level:3+p.aggression},charisma:{level:2},pofigism:{level:3},ahui:{level:2}};
+      s.heroProgression={level:p.level,xp:p.xp,xpToNext:100,points:0};
+    }
+    return s;
+  }
   s.actors=s.actors||{};s.actors[current]={...(s.actors[current]||{}),profile:profile(s)};
   if(!s.actors[wanted]?.profile){
     const bird=s.companions.evpapiy,p=bird.progression;
@@ -85,8 +93,22 @@ export function performWorldAction(state,id,scene={}){
   const s=r.state;s.exploration=s.exploration||{completed:{}};s.exploration.completed=s.exploration.completed||{};
   if(a.onceKey)s.exploration.completed[a.onceKey]={clock:s.clock.totalMinutes,scene:s.scene};
   if(a.memory){s.memories.world=s.memories.world||{};s.memories.world[a.memory]={chapter:chapterOf(s),clock:s.clock.totalMinutes,actor:activeActor(s)}}
-  if(a.xp){if(activeActor(s)==='evpapiy')r.events.push(...addEvpXp(s,a.xp));else r.events.push(...addHeroXp(s,a.xp))}
+  // Exploration supplements the chapter milestones; moving between scene names
+  // must not become a source of unlimited levels.
+  s.exploration.xp=s.exploration.xp||{};
+  const xpKey=`${activeActor(s)}:${chapterOf(s)}`,earned=Number(s.exploration.xp[xpKey]||0);
+  const reward=Math.max(0,Math.min(Number(a.xp||0),20-earned));
+  if(reward){if(activeActor(s)==='evpapiy')r.events.push(...addEvpXp(s,reward));else r.events.push(...addHeroXp(s,reward));s.exploration.xp[xpKey]=earned+reward}
   if(activeActor(s)==='evpapiy')s.companions.evpapiy.hp=Math.round(s.health/100*s.companions.evpapiy.maxHp);
   s.journal=Array.isArray(s.journal)?s.journal:[];s.journal.push({id:a.id,text:a.label,detail:a.detail,chapter:chapterOf(s),clock:s.clock.totalMinutes,actor:activeActor(s)});
   return{...r,state:normalizeState(s),message:a.detail};
+}
+
+export function leaveItem(state,id){
+  // A full bag always has a reversible way to make room, including a bag full
+  // of non-consumable tools. Quest items are stored separately and never dropped.
+  const s=clone(state);
+  if(s.health<=0||s.pendingBattle||s.importantItems.includes(id)||!removeItem(s,id,1))return{state:clone(state),accepted:false};
+  s.pendingLoot=s.pendingLoot||[];s.pendingLoot.push({id,qty:1,scene:s.scene,actor:activeActor(s)});
+  return{state:normalizeState(s),accepted:true};
 }
