@@ -10,6 +10,11 @@
     "sha256": "7e4e890b4c191af9273d6e1069a1a7a768b9953082b05494df8643b7aaadd957"
   },
   {
+    "path": "FINAL_CHECKPOINT.md",
+    "bytes": 4064,
+    "sha256": "b9ceef31411f1fc9bf1212822fc443e7d70c1db2ad426eb8a94baab9b9df2ef9"
+  },
+  {
     "path": "MOBILE_UI_PROTOTYPE.html",
     "bytes": 949538,
     "sha256": "42de6808a12cccfafc7dac51f38499637d2c660231b13f965f41a3877b019acf"
