@@ -7,7 +7,7 @@ import {STATUS_DEFS,CLOTHES,ITEM_DEFS} from './data.js?v=096b';
 
 const ALLOWED_STATUSES=new Set([
   'hangover','pigeonHumiliated','suspicious','scared','angry',
-  'yebatorium','tipsy','skunk','tired','blessed','cowLicked'
+  'yebatorium','tipsy','skunk','tired','blessed','cowLicked','hungry','thirsty','wet','cold','overheated','bump'
 ]);
 const EARLY_CH3=new Set([
   'ch3_intro','ch3_obey','ch3_turn','ch3_call_pigeon','ch3_tell_off','ch3_creature',
@@ -34,7 +34,7 @@ function forceChapter(s,raw){s.chapter=chapterOf(s);s.story={...(s.story||{}),ch
  function ensureRelationship(s,id,name,values={}){
   s.relationships=s.relationships||{};
   const old=s.relationships[id]||{};
-  s.relationships[id]={name,known:Boolean(old.known),values:{...values,...(old.values||{})},discoveredParams:Array.isArray(old.discoveredParams)?old.discoveredParams:[]};
+  s.relationships[id]={...old,name,known:Boolean(old.known),values:{...values,...(old.values||{})},discoveredParams:Array.isArray(old.discoveredParams)?old.discoveredParams:[]};
 }
 function syncKnownPeople(s){
   const entered=new Set(s.story?.entered||[]);
@@ -160,6 +160,7 @@ export function normalizeState(raw){
 }
 
 export function executeAction(state,action){
+  const expired=(state.activeStatuses||[]).filter(id=>Number.isFinite(Number(state.statusTimers?.[id]))&&Number(state.statusTimers[id])<=Number(state.clock.totalMinutes));
   const before=normalizeState(state),beforeActive=new Set(before.activeStatuses||[]),oldTimers={...(before.statusTimers||{})};
   const r=core.executeAction(before,action);if(r.accepted===false)return r;let s=cleanStatuses(forceChapter(r.state,before));let events=(r.events||[]).filter(e=>{
     if(e?.type!=='statusAdded'&&e?.type!=='statusRemoved')return true;return ALLOWED_STATUSES.has(e.id);
@@ -179,7 +180,15 @@ export function executeAction(state,action){
   if(added('cowLicked')){if(!s.activeStatuses.includes('cowLicked'))s.activeStatuses.push('cowLicked');ensureDiscovered(s,'cowLicked');s.statusTimers.cowLicked=Number(s.clock?.totalMinutes||0)+60}
   snapshotStepan(before,s,action);
   events=reconcileTired(s,beforeActive.has('tired'),events);events=maybeHangover(s,events);syncItemKnowledge(s);syncKnownPeople(s);forceChapter(s,before);
+  for(const id of expired)if(!events.some(e=>e.type==='statusRemoved'&&e.id===id))events.push({type:'statusRemoved',id,visible:false});
   return{state:cleanStatuses(s),events,accepted:true};
+}
+export function previewAction(state,action){
+  const r=executeAction(state,action);if(r.accepted===false)return['Бракує ресурсу'];
+  const labels={energy:'Бадьорість',water:'Вода',satiety:'Ситість',health:'Здоровʼя'},parts=[];
+  if(action.minutes>0)parts.push(action.minutes+' хв');
+  for(const [key,label] of Object.entries(labels)){const before=key==='health'?state.health:state.needs[key],after=key==='health'?r.state.health:r.state.needs[key],delta=Math.round(after)-Math.round(before);if(delta)parts.push(`${label} ${delta>0?'+':''}${delta}%`)}
+  return parts;
 }
 export function useItem(state,id){
   const d=ITEM_DEFS[id];if(state.health<=0||!d||core.itemCount(state,id)<=0||!d.useEffects?.length)return{state,used:false,events:[]};

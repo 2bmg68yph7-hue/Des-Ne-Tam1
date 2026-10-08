@@ -5,6 +5,7 @@ import {CHAPTER2_SCENES} from './chapter2.js?v=096b';
 import {CHAPTER3_SCENES} from './chapter3.js?v=096b';
 import {createInitialState,normalizeState} from './engine.js?v=096b';
 import {loadRun,saveRun,clearRun} from './storage.js?v=096b';
+import {readGameState} from './main.js?v=095';
 
 const VERSION100='v0.10.0 TEST';
 const A100={
@@ -160,7 +161,7 @@ async function patchMenuKnowledge100(){
     const darinaCard=cards.find(c=>characterName100(c)==='Дарина');
     const hoodCard=cards.find(c=>characterName100(c)==='Постать');
     const runId=Number((document.querySelector('#menuMeta')?.textContent||'').match(/Проходження\s+(\d+)/)?.[1]||0);
-    const state=runId?await loadRun(runId):null;
+    const state=readGameState()||(runId?await loadRun(runId):null);
     const revealed=Boolean(state?.flags?.darinaRevealed100);
     if(h==='Персонажі'){
       if(darinaCard){

@@ -1,5 +1,6 @@
 import {CHAPTER_META,chapterOf} from './chapters.js';
 import {exportBackup,importBackup,validateBackup} from './storage.js?v=096b';
+import {syncActor,activeActor,worldActions,performWorldAction,locationContext,PHASE_LABELS,timePhase} from './world.js';
 import {STAT_KEYS,STAT_LABELS,STAT_DESCRIPTIONS} from './config.js?v=096b';
 import {STATUS_DEFS,CLOTHES,ITEM_DEFS} from './data.js?v=096b';
 import {createInitialState,normalizeState,formatTime,threatInfo,thermal,equipmentTotals,equip,statModifiers,effectiveStat,itemCount,assignQuickSlot,useItem,executeAction,previewAction,addItem,spendHeroPoint,spendEvpPoint,addHeroXp,addEvpXp} from './engine.js?v=096b';
@@ -22,6 +23,7 @@ const lowerFirst=s=>{s=String(s||'');return s?s[0].toLocaleLowerCase('uk-UA')+s.
 
 let G=null;
 let actionBusy=false;
+export function readGameState(){return G?JSON.parse(JSON.stringify(G)):null}
 let currentTab='inventory';
 let inventoryCategory='all';
 let noticeQueue=[];
@@ -77,7 +79,7 @@ function queueState(id){if(!STATUS_DEFS[id])return;noticeQueue.push(id);pumpStat
 function pumpState(){
   if(noticeBusy||!noticeQueue.length)return;
   noticeBusy=true;
-  const id=noticeQueue.shift(),d=STATUS_DEFS[id],effects=statusEffectText(id);
+  const id=noticeQueue.shift(),original=STATUS_DEFS[id],d=activeActor(G)==='evpapiy'?{...original,portrait:'./pigeon_base_095b.webp'}:original,effects=statusEffectText(id);
   $('#statePopup').innerHTML=`${d.portrait?`<img src="${d.portrait}" class="state-popup-img" alt="">`:''}<h2>${esc(d.name)}</h2><p>${esc(d.blurb||'')}</p>${effects?`<div class="state-popup-effect"><b>ефект:</b> ${esc(effects)}</div>`:''}<div class="state-popup-remove"><b>як позбутись:</b> ${esc(d.remove||'')}</div>`;
   $('#stateOverlay').classList.remove('hidden');
   $('#stateOverlay').setAttribute('aria-hidden','false');
@@ -296,7 +298,7 @@ async function ensureSceneEntered(scene){
 function syncSceneAudio(scene){audioManager.setAtmosphere(scene?.atmosphere||'silent')}
 async function renderGame(){
   if(!G)return;
-  G=normalizeState(G);
+  G=normalizeState(syncActor(normalizeState(G)));
   if(G.pendingBattle&&G.health>0){
     const options=G.pendingBattle.options;
     const result=await openStoryBattle(G,options);G=normalizeState(result.state);notifyEvents(result.events);
@@ -329,7 +331,7 @@ async function openDeathOverlay(){
 
 function renderHeader(){
   const tm=formatTime(G.clock.totalMinutes),w=G.world.weather,t=thermal(G),th=threatInfo(G);
-  $('#timeLine').textContent=`День ${tm.day} · ${tm.time}`;
+  $('#timeLine').textContent=`День ${tm.day} · ${tm.time} · ${PHASE_LABELS[timePhase(G)]}`;
   $('#weatherLine').textContent=`${w.icon} ${w.label} ${w.tempC}° · ${t.feel}`;
   $('#threatLine').textContent=`Небезпека: ${th.label}`;
   $('#threatLine').className=`threat ${th.key}`;
@@ -428,7 +430,20 @@ function closeMenu(){
 function renderMenu(){
   document.querySelectorAll('#menuTabs [data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===currentTab));
   const tm=formatTime(G.clock.totalMinutes);$('#menuMeta').textContent=`Проходження ${G.runId} · День ${tm.day}, ${tm.time}`;
-  ({states:renderStates,stats:renderStats,needs:renderNeeds,sleep:renderSleep,inventory:renderInventory,clothes:renderClothes,companions:renderCompanions,relations:renderRelations,map:renderMap,shop:renderShop,settings:renderSettings}[currentTab]||renderInventory)();
+  ({place:renderPlace,journal:renderJournal,states:renderStates,stats:renderStats,needs:renderNeeds,sleep:renderSleep,inventory:renderInventory,clothes:renderClothes,companions:renderCompanions,relations:renderRelations,map:renderMap,shop:renderShop,settings:renderSettings}[currentTab]||renderInventory)();
+}
+
+function renderPlace(){
+  const scene=getGameScene(G),context=locationContext(G,scene),actions=worldActions(G,scene);
+  $('#menuContent').innerHTML=`<div class="section-title"><h2>Місце</h2><span>${esc(PHASE_LABELS[context.phase])} · ${activeActor(G)==='evpapiy'?'Євпапій':'Степан'}</span></div><div class="info-card">${esc(G.world.location)}${context.danger?'<p>Поруч небезпека. Тривалий пошук і відпочинок недоступні.</p>':''}</div><div class="world-actions">${actions.map(a=>`<article class="info-card"><b>${esc(a.label)}</b><p>${esc(a.detail)}</p><button data-world-action="${esc(a.id)}" ${a.done?'disabled':''}>${a.done?'Виконано':a.minutes?`${a.minutes} хв · виконати`:'Забрати'}</button></article>`).join('')||'<div class="empty-state">Зараз зосередьтесь на сюжетній дії. Припаси можна переглянути в інвентарі.</div>'}</div>`;
+  $('#menuContent').querySelectorAll('[data-world-action]').forEach(b=>b.onclick=async()=>{
+    if(actionBusy||G.health<=0)return;actionBusy=true;
+    try{const r=performWorldAction(G,b.dataset.worldAction,getGameScene(G));if(r.accepted===false){toast('НЕДОСТУПНО',r.message);return}G=r.state;notifyEvents(r.events);await persist();await renderGame();renderPlace();toast('ДІЯ ВИКОНАНА',r.message)}finally{actionBusy=false}
+  });
+}
+function renderJournal(){
+  const entries=(G.journal||[]).slice().reverse(),revealed=G.flags.darinaRevealed100;
+  $('#menuContent').innerHTML=`<div class="section-title"><h2>Журнал</h2></div><div class="info-card"><b>Зараз</b><p>${G.chapter===7?'Ви ще в тумані. Перевірте стан і припаси; шлях назад ще не знайдений.':G.chapter===6?'Євпапій шукає допомогу після зникнення Степана. Його припаси окремі.':G.chapter===5?'Перед дорогою можна підготуватися. У тумані відпочинку не буде.':'Досліджуйте поточне місце між подіями. Запаси й допомога обмежені, а сюжет має кілька способів продовження.'}</p></div>${G.relationships.hood?.known?`<div class="info-card"><b>${revealed?'Дарина':'Постать'}</b><p>${revealed?'Степан упізнав її під час зняття каптура.':'Особа не встановлена.'}</p></div>`:''}${entries.map(e=>`<article class="info-card"><b>${esc(e.text)}</b><small>Глава ${e.chapter} · день ${formatTime(e.clock).day} · ${formatTime(e.clock).time}</small><p>${esc(e.detail)}</p></article>`).join('')||'<p>Записи дослідження з’являться після ваших дій.</p>'}`;
 }
 
 function renderInventory(){
@@ -537,6 +552,7 @@ function sleepMessage(place,hours,cow){
 }
 
 async function doSleep(hours){
+  if(!G||G.health<=0||!locationContext(G,getGameScene(G)).safe||actionBusy){toast('ЗАРАЗ НЕ ДО СНУ','Спершу вийдіть із небезпеки й завершіть поточну подію.');return}
   const place=sleepPlace();
   const cow=place.key==='barn'&&Math.random()<.05;
   const effects=cow?[{type:'statusAdd',id:'cowLicked'}]:[];

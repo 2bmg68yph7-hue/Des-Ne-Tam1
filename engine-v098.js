@@ -4,7 +4,7 @@ export * from './engine-v096.js?v=099';
 import * as prev from './engine-v096.js?v=099';
 import {ITEM_DEFS,STATUS_DEFS} from './data.js?v=096b';
 
-const DEAD_STATUSES=new Set(['headInjury','hungry','thirsty','wet','cold','overheated','bump']);
+const DEAD_STATUSES=new Set(['headInjury']);
 
 function testConfig(){
   try{return JSON.parse(localStorage.getItem('dnt-test-v096')||'{}')||{}}catch{return{}}
@@ -63,7 +63,7 @@ function ensureRelationship(s,id,name,values={}){
   s.relationships=s.relationships||{};
   const old=s.relationships[id]||{};
   s.relationships[id]={
-    name,
+    ...old,name,
     known:Boolean(old.known),
     values:{...values,...(old.values||{})},
     discoveredParams:Array.isArray(old.discoveredParams)?old.discoveredParams:[]

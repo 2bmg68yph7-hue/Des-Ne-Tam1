@@ -45,7 +45,7 @@ function fixRepeatedReaction096a(){
 function restoreStatuses097(){
   STATUS_DEFS.blessed={name:'СВЯТА ВОДИЧКА ПРАЦЮЄ',portrait:'./portrait_base.png',blurb:'Баба Галя явно шось знала.',mods:{},negativeModShield:1,durationMinutes:60,extraEffects:['Кожен мінус до характеристик від активних станів слабшає на 1.'],remove:'сам мине через 60 ігрових хвилин.'};
   STATUS_DEFS.cowLicked={name:'ВАС ОБЛИЗАЛА КОРОВА',portrait:'./portrait_base.png',blurb:'Не питайте.',mods:{strength:5,attention:5,agility:5,charisma:5,pofigism:5,ahui:5},durationMinutes:60,remove:'сам мине через 1 ігрову годину.'};
-  for(const id of ['hungry','thirsty','headInjury','wet','cold','overheated','bump'])delete STATUS_DEFS[id];
+  for(const id of ['headInjury'])delete STATUS_DEFS[id];
   if(ITEM_DEFS.holy_water)ITEM_DEFS.holy_water.description='На 60 хвилин послаблює кожен мінус до характеристик від активних станів на 1.';
 }
 

@@ -8,9 +8,10 @@ import {STATUS_DEFS,ITEM_DEFS} from './data.js?v=096b';
 import {normalizeState,executeAction,threatInfo,effectiveStat,createInitialState} from './engine.js?v=096b';
 import {loadRun,saveRun,listManual,listChapterCheckpoints,persistentWrite,saveKeys,clearRun} from './storage.js?v=096b';
 import {audioManager} from './audio.js?v=096b';
+import {readGameState} from './main.js?v=095';
 
 const VERSION099='v0.9.9e TEST';
-const DEAD_STATUSES099=new Set(['headInjury','hungry','thirsty','wet','cold','overheated','bump']);
+const DEAD_STATUSES099=new Set(['headInjury']);
 const POST_TYPES099=new Set(['statusAdd','health','damage','need','heroXp','evpXp','itemAdd','itemRemove','clothesAdd','equip']);
 const BOOKS099=[CHAPTER1_SCENES,CHAPTER2_SCENES,CHAPTER3_SCENES];
 const allScenes099=()=>BOOKS099.flatMap(b=>Object.values(b||{})).filter(Boolean);
@@ -543,7 +544,7 @@ function fixChapter4Continuity099b(){
 // ---- Menu knowledge ---------------------------------------------------------------
 function activateTab099(tab){document.querySelectorAll('#menuTabs [data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab))}
 function currentRunId099(){return Number((document.querySelector('#menuMeta')?.textContent||'').match(/Проходження\s+(\d+)/)?.[1]||0)}
-async function currentState099(){const id=currentRunId099();if(!id)return null;const raw=await loadRun(id);return raw?normalizeState(raw):null}
+async function currentState099(){const live=readGameState();if(live)return live;const id=currentRunId099();if(!id)return null;const raw=await loadRun(id);return raw?normalizeState(raw):null}
 function replaceTab099(tab,handler){
   const old=document.querySelector(`#menuTabs [data-tab="${tab}"]`);if(!old)return null;
   const neu=old.cloneNode(true);neu.onclick=null;old.replaceWith(neu);
@@ -616,7 +617,7 @@ function sceneUrgent099(scene,state){
 function shopSafe099(s){
   if(!s?.flags?.shopUnlocked)return false;
   if(s.flags?.activeHero097==='evpapiy'||s.flags?.ch4StepanMissing)return false;
-  if(threatInfo(s)?.key!=='low')return false;
+  // Low health must not block supplies in a safe village location.
   const scene=sceneById099(String(s.story?.sceneId||s.scene||''));
   if(s.flags?.storyUrgent099||sceneUrgent099(scene,s))return false;
   const loc=String(s.world?.location||'').toLocaleLowerCase('uk-UA'),env=String(s.world?.environment||'').toLocaleLowerCase('uk-UA');
@@ -720,9 +721,6 @@ function applyActiveHeroUi099e(isEvp){
   let badge=document.querySelector('#activeHeroBadge097');
   if(!badge){badge=document.createElement('span');badge.id='activeHeroBadge097';badge.className='active-hero-badge097 hidden';document.querySelector('.world-line')?.appendChild(badge)}
   if(badge){badge.textContent=isEvp?'🕊️ ЄВПАПІЙ':'';badge.classList.toggle('hidden',!isEvp)}
-  if(isEvp){
-    const needs=document.querySelector('#miniNeeds');if(needs)needs.innerHTML='<span>🕊️ Керуєте Євпапієм</span>';
-  }
 }
 async function syncActiveHeroUi099e(){
   const kicker=String(document.querySelector('#storyKicker')?.textContent||'');
@@ -843,7 +841,7 @@ function addCss099(){
     .stage-image:has(>.actor.actor-2)>.actor.actor-0:not(.pigeon):not(.ch4-pigeon097):not(.ch4-cat097),.stage-image:has(>.actor.actor-2)>.actor.actor-1:not(.pigeon):not(.ch4-pigeon097):not(.ch4-cat097),.stage-image:has(>.actor.actor-2)>.actor.actor-2:not(.pigeon):not(.ch4-pigeon097):not(.ch4-cat097){max-width:31%!important;max-height:92%!important}
     .relation-card small{display:block;margin-top:7px;opacity:.7}
     .character-placeholder099{display:inline-grid;place-items:center;width:52px;height:52px;border-radius:50%;border:1px solid #47554d;font-weight:900;font-size:1.4rem;opacity:.8}
-    .evp-mode097 .quick-row,.evp-mode097 .active-states{display:none!important}
+    /* The active pigeon has his own pouch, needs and statuses. */
     @media(max-width:620px){
       .stage-image:has(>.actor.actor-1):not(:has(>.actor.actor-2))>.actor.actor-0:not(.pigeon):not(.ch4-pigeon097):not(.ch4-cat097),.stage-image:has(>.actor.actor-1):not(:has(>.actor.actor-2))>.actor.actor-1:not(.pigeon):not(.ch4-pigeon097):not(.ch4-cat097){max-width:43%!important}
       .stage-image:has(>.actor.actor-2)>.actor.actor-0:not(.pigeon):not(.ch4-pigeon097):not(.ch4-cat097),.stage-image:has(>.actor.actor-2)>.actor.actor-1:not(.pigeon):not(.ch4-pigeon097):not(.ch4-cat097),.stage-image:has(>.actor.actor-2)>.actor.actor-2:not(.pigeon):not(.ch4-pigeon097):not(.ch4-cat097){max-width:33%!important}

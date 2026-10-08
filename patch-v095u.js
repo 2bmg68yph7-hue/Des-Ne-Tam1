@@ -87,6 +87,7 @@ function rebuildStatuses095u(){
 
   for(const key of Object.keys(STATUS_DEFS))delete STATUS_DEFS[key];
   for(const id of ORDER)STATUS_DEFS[id]=defs[id];
+  for(const id of ['hungry','thirsty','wet','cold','overheated','bump'])if(old[id])STATUS_DEFS[id]=old[id];
 }
 
 function explainStats095u(){

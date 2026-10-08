@@ -8,7 +8,7 @@ const groups085 = {
   hero: {label:'Герой',tabs:[['needs','Потреби'],['sleep','Сон'],['states','Стани'],['stats','Характеристики']]},
   things: {label:'Речі',tabs:[['inventory','Інвентар'],['clothes','Шмотки']]},
   people: {label:'Персонажі',tabs:[['characters','Персонажі'],['companions','Компаньйони'],['relations','Стосунки']]},
-  world: {label:'Світ',tabs:[['map','Карта'],['shop','Крамничка']]}
+  world: {label:'Світ',tabs:[['place','Місце'],['journal','Журнал'],['map','Карта'],['shop','Крамничка']]}
 };
 
 const tabToGroup085 = Object.fromEntries(Object.entries(groups085).flatMap(([group,data]) => data.tabs.map(([tab]) => [tab,group])));
