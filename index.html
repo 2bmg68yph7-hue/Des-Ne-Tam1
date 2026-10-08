@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0b100d">
   <title>Десь не там</title>
-  <link rel="stylesheet" href="./styles.css?v=095">
-  <link rel="stylesheet" href="./ui-v085.css?v=095">
+  <link rel="stylesheet" href="./styles.css?v=stage5">
+  <link rel="stylesheet" href="./ui-v085.css?v=stage5">
+  <link rel="stylesheet" href="./interface.css?v=stage5">
 </head>
-<body>
+<body class="story-layout">
 <main id="app">
   <section id="startScreen" class="screen start-screen">
     <div class="start-card">
@@ -54,14 +55,15 @@
       <div class="top-buttons"><button id="menuBtn" class="icon-btn">☰ Меню</button><button id="exitBtn" class="icon-btn ghost">Вийти</button></div>
     </header>
     <section class="stage">
-      <div id="stageImage" class="stage-image"></div>
+      <div id="stageImage" class="stage-image"></div><div id="stageContext" class="stage-context"></div>
       <div class="quick-row"><div class="quick-label">Швидкий доступ</div><div id="quickSlots" class="quick-slots"></div></div>
-      <details class="active-states" open><summary>Активні стани <span id="activeStateCount"></span></summary><div id="activeStates"></div></details>
+      <details class="active-states"><summary>Активні стани <span id="activeStateCount"></span></summary><div id="activeStates"></div></details>
       <article class="story-card"><div id="storyKicker" class="story-kicker">ГЛАВА 1</div><div id="storyText" class="story-text"></div><div id="storyExtras"></div><div id="storyChoices" class="story-actions"></div></article>
     </section>
+    <nav id="gameNavigation" aria-label="Швидка навігація"><button data-navigate="story"><span>▤</span>Історія</button><button data-navigate="inventory"><span>▣</span>Рюкзак</button><button data-navigate="map"><span>⌖</span>Карта</button><button data-navigate="hero"><span>♟</span>Герой</button><button data-navigate="overview"><span>☰</span>Меню</button></nav>
   </section>
 
-  <div id="menuOverlay" class="menu-overlay hidden" aria-hidden="true"><div class="menu-sheet" role="dialog" aria-modal="true" aria-label="Меню гри"><div class="menu-head"><div><div class="menu-title">Меню</div><div id="menuMeta" class="small"></div></div><button id="closeMenuBtn" class="icon-btn">Закрити</button></div><nav id="menuTabs" class="menu-tabs"><button data-tab="states">Стани</button><button data-tab="stats">Характеристики</button><button data-tab="needs">Потреби</button><button data-tab="sleep">Сон</button><button data-tab="inventory">Інвентар</button><button data-tab="clothes">Шмотки</button><button data-tab="companions">Компаньйони</button><button data-tab="relations">Стосунки</button><button data-tab="place">Місце</button><button data-tab="journal">Журнал</button><button data-tab="map">Карта</button><button data-tab="shop">Крамничка</button><button data-tab="settings">⚙️ Налаштування</button></nav><section id="menuContent" class="menu-content"></section></div></div>
+  <div id="menuOverlay" class="menu-overlay hidden" aria-hidden="true"><div class="menu-sheet" role="dialog" aria-modal="true" aria-label="Меню гри"><div class="menu-head"><div><div class="menu-title">Меню</div><div id="menuMeta" class="small"></div></div><button id="menuOverviewBtn" class="icon-btn">☰ Меню</button><button id="closeMenuBtn" class="icon-btn">Закрити</button></div><nav id="menuTabs" class="menu-tabs"><button data-tab="states">Стани</button><button data-tab="stats">Характеристики</button><button data-tab="needs">Потреби</button><button data-tab="sleep">Сон</button><button data-tab="inventory">Інвентар</button><button data-tab="clothes">Шмотки</button><button data-tab="companions">Компаньйони</button><button data-tab="relations">Стосунки</button><button data-tab="place">Місце</button><button data-tab="journal">Журнал</button><button data-tab="map">Карта</button><button data-tab="shop">Крамничка</button><button data-tab="settings">⚙️ Налаштування</button></nav><section id="menuContent" class="menu-content"></section></div></div>
 
   <div id="stateOverlay" class="state-overlay hidden" aria-hidden="true"><div class="state-dialog" role="dialog" aria-modal="true"><div class="state-dialog-title">НОВИЙ СТАН</div><div id="statePopup"></div><button id="stateOkBtn" class="primary state-ok">Поняв</button></div></div>
   <div id="confirmOverlay" class="confirm-overlay hidden" aria-hidden="true"><div class="confirm-dialog" role="dialog" aria-modal="true"><div class="confirm-kicker">НОВА ГРА</div><div id="confirmTitle" class="confirm-title">Почати заново?</div><div id="confirmText" class="confirm-text"></div><div class="confirm-actions"><button id="confirmCancelBtn" class="ghost">Скасувати</button><button id="confirmOkBtn" class="danger">Так, почати заново</button></div></div></div>
@@ -72,43 +74,104 @@
 <script type="importmap">
 {
   "imports": {
-    "./engine.js?v=096b": "./engine-v098.js?v=099",
-    "./data.js?v=096b": "./data.js?v=099",
-    "./chapter3.js?v=096b": "./chapter3.js?v=099"
+    "./assets.js": "./assets.js?v=stage5",
+    "./audio.js?v=096b": "./audio.js?v=stage5",
+    "./balance.js": "./balance.js?v=stage5",
+    "./battle.js?v=096b": "./battle.js?v=stage5",
+    "./chapter1.js?v=096b": "./chapter1.js?v=stage5",
+    "./chapter2.js?v=096b": "./chapter2.js?v=stage5",
+    "./chapter3.js?v=096b": "./chapter3.js?v=stage5",
+    "./chapters.js": "./chapters.js?v=stage5",
+    "./config.js?v=096b": "./config.js?v=stage5",
+    "./data.js?v=096b": "./data.js?v=stage5",
+    "./engine-v096.js?v=099": "./engine-v096.js?v=stage5",
+    "./engine.js": "./engine-v098.js?v=stage5",
+    "./engine.js?core=096b": "./engine.js?v=stage5",
+    "./engine.js?v=096b": "./engine-v098.js?v=stage5",
+    "./gameplay.js": "./gameplay.js?v=stage5",
+    "./interface.js": "./interface.js?v=stage5",
+    "./main.js?v=095": "./main.js?v=stage5",
+    "./scene-patch.js?v=096b": "./scene-patch.js?v=stage5",
+    "./storage.js?v=096b": "./storage.js?v=stage5",
+    "./world.js": "./world.js?v=stage5",
+    "./audio.js": "./audio.js?v=stage5",
+    "./battle.js": "./battle.js?v=stage5",
+    "./chapter1.js": "./chapter1.js?v=stage5",
+    "./chapter2.js": "./chapter2.js?v=stage5",
+    "./chapter3.js": "./chapter3.js?v=stage5",
+    "./config.js": "./config.js?v=stage5",
+    "./data.js": "./data.js?v=stage5",
+    "./engine-v095.js": "./engine-v095.js?v=stage5",
+    "./engine-v096.js": "./engine-v096.js?v=stage5",
+    "./engine-v098.js": "./engine-v098.js?v=stage5",
+    "./main.js": "./main.js?v=stage5",
+    "./patch-v095.js": "./patch-v095.js?v=stage5",
+    "./patch-v095b.js": "./patch-v095b.js?v=stage5",
+    "./patch-v095c.js": "./patch-v095c.js?v=stage5",
+    "./patch-v095d.js": "./patch-v095d.js?v=stage5",
+    "./patch-v095e.js": "./patch-v095e.js?v=stage5",
+    "./patch-v095f.js": "./patch-v095f.js?v=stage5",
+    "./patch-v095g.js": "./patch-v095g.js?v=stage5",
+    "./patch-v095h.js": "./patch-v095h.js?v=stage5",
+    "./patch-v095i.js": "./patch-v095i.js?v=stage5",
+    "./patch-v095j.js": "./patch-v095j.js?v=stage5",
+    "./patch-v095k.js": "./patch-v095k.js?v=stage5",
+    "./patch-v095l.js": "./patch-v095l.js?v=stage5",
+    "./patch-v095m.js": "./patch-v095m.js?v=stage5",
+    "./patch-v095n.js": "./patch-v095n.js?v=stage5",
+    "./patch-v095o.js": "./patch-v095o.js?v=stage5",
+    "./patch-v095p.js": "./patch-v095p.js?v=stage5",
+    "./patch-v095q.js": "./patch-v095q.js?v=stage5",
+    "./patch-v095r.js": "./patch-v095r.js?v=stage5",
+    "./patch-v095s.js": "./patch-v095s.js?v=stage5",
+    "./patch-v095t.js": "./patch-v095t.js?v=stage5",
+    "./patch-v095u.js": "./patch-v095u.js?v=stage5",
+    "./patch-v095v.js": "./patch-v095v.js?v=stage5",
+    "./patch-v095w.js": "./patch-v095w.js?v=stage5",
+    "./patch-v096.js": "./patch-v096.js?v=stage5",
+    "./patch-v096a.js": "./patch-v096a.js?v=stage5",
+    "./patch-v097a.js": "./patch-v097a.js?v=stage5",
+    "./patch-v097b.js": "./patch-v097b.js?v=stage5",
+    "./patch-v098.js": "./patch-v098.js?v=stage5",
+    "./patch-v100.js": "./patch-v100.js?v=stage5",
+    "./scene-patch.js": "./scene-patch.js?v=stage5",
+    "./storage.js": "./storage.js?v=stage5",
+    "./story-test.js": "./story-test.js?v=stage5",
+    "./ui-v085.js": "./ui-v085.js?v=stage5"
   }
 }
 </script>
 
-<script type="module" src="./main.js?v=095"></script>
-<script type="module" src="./ui-v085.js?v=095"></script>
-<script type="module" src="./patch-v095.js?v=095"></script>
-<script type="module" src="./patch-v095b.js?v=095b"></script>
-<script type="module" src="./patch-v095c.js?v=095c"></script>
-<script type="module" src="./patch-v095d.js?v=095d"></script>
-<script type="module" src="./patch-v095e.js?v=095e"></script>
-<script type="module" src="./patch-v095f.js?v=095f"></script>
-<script type="module" src="./patch-v095g.js?v=095g"></script>
-<script type="module" src="./patch-v095h.js?v=095h"></script>
-<script type="module" src="./patch-v095i.js?v=095i"></script>
-<script type="module" src="./patch-v095j.js?v=095j"></script>
-<script type="module" src="./patch-v095k.js?v=095k"></script>
-<script type="module" src="./patch-v095l.js?v=095l"></script>
-<script type="module" src="./patch-v095m.js?v=095m"></script>
-<script type="module" src="./patch-v095n.js?v=095n"></script>
-<script type="module" src="./patch-v095o.js?v=095o"></script>
-<script type="module" src="./patch-v095p.js?v=095p"></script>
-<script type="module" src="./patch-v095q.js?v=095q"></script>
-<script type="module" src="./patch-v095r.js?v=095r"></script>
-<script type="module" src="./patch-v095s.js?v=095s"></script>
-<script type="module" src="./patch-v095t.js?v=095t"></script>
-<script type="module" src="./patch-v095u.js?v=095u"></script>
-<script type="module" src="./patch-v095v.js?v=095v"></script>
-<script type="module" src="./patch-v095w.js?v=095w"></script>
-<script type="module" src="./patch-v096.js?v=096"></script>
-<script type="module" src="./patch-v096a.js?v=097b"></script>
-<script type="module" src="./patch-v097a.js?v=097b"></script>
-<script type="module" src="./patch-v097b.js?v=097b"></script>
-<script type="module" src="./patch-v098.js?v=099e"></script>
-<script type="module" src="./patch-v100.js?v=100"></script>
+<script type="module" src="./main.js?v=stage5"></script>
+<script type="module" src="./ui-v085.js?v=stage5"></script>
+<script type="module" src="./patch-v095.js?v=stage5"></script>
+<script type="module" src="./patch-v095b.js?v=stage5"></script>
+<script type="module" src="./patch-v095c.js?v=stage5"></script>
+<script type="module" src="./patch-v095d.js?v=stage5"></script>
+<script type="module" src="./patch-v095e.js?v=stage5"></script>
+<script type="module" src="./patch-v095f.js?v=stage5"></script>
+<script type="module" src="./patch-v095g.js?v=stage5"></script>
+<script type="module" src="./patch-v095h.js?v=stage5"></script>
+<script type="module" src="./patch-v095i.js?v=stage5"></script>
+<script type="module" src="./patch-v095j.js?v=stage5"></script>
+<script type="module" src="./patch-v095k.js?v=stage5"></script>
+<script type="module" src="./patch-v095l.js?v=stage5"></script>
+<script type="module" src="./patch-v095m.js?v=stage5"></script>
+<script type="module" src="./patch-v095n.js?v=stage5"></script>
+<script type="module" src="./patch-v095o.js?v=stage5"></script>
+<script type="module" src="./patch-v095p.js?v=stage5"></script>
+<script type="module" src="./patch-v095q.js?v=stage5"></script>
+<script type="module" src="./patch-v095r.js?v=stage5"></script>
+<script type="module" src="./patch-v095s.js?v=stage5"></script>
+<script type="module" src="./patch-v095t.js?v=stage5"></script>
+<script type="module" src="./patch-v095u.js?v=stage5"></script>
+<script type="module" src="./patch-v095v.js?v=stage5"></script>
+<script type="module" src="./patch-v095w.js?v=stage5"></script>
+<script type="module" src="./patch-v096.js?v=stage5"></script>
+<script type="module" src="./patch-v096a.js?v=stage5"></script>
+<script type="module" src="./patch-v097a.js?v=stage5"></script>
+<script type="module" src="./patch-v097b.js?v=stage5"></script>
+<script type="module" src="./patch-v098.js?v=stage5"></script>
+<script type="module" src="./patch-v100.js?v=stage5"></script>
 </body>
 </html>

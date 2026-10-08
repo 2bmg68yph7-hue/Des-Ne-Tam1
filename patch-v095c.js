@@ -82,6 +82,7 @@ function patchOnionDefs(){
 let quickPlaceholder=null,statePlaceholder=null,hudExtra=null;
 const mq=window.matchMedia('(max-width:760px)');
 function setupHudRelocation(){
+  if(document.body.classList.contains('story-layout'))return;
   const stage=document.querySelector('#gameScreen .stage');
   const header=document.querySelector('#gameScreen .game-top');
   const quick=document.querySelector('#gameScreen .quick-row');
@@ -105,6 +106,7 @@ function setupHudRelocation(){
 }
 
 function syncGameViewport(){
+  if(document.body.classList.contains('story-layout'))return;
   const screen=document.querySelector('#gameScreen');if(!screen)return;
   const run=()=>document.body.classList.toggle('game-active095c',mq.matches&&!screen.classList.contains('hidden'));
   // v0.9.5p: do not watch class mutations during stage startup.
@@ -165,7 +167,7 @@ function addCss(){
       #gameScreen .mini-needs span{font-size:.76rem!important;padding:6px 4px!important}
       #gameScreen .mobile-hud-extra095c .quick-slot,#gameScreen .mobile-hud-extra095c .active-states summary{font-size:.67rem!important;padding-top:6px!important;padding-bottom:6px!important}
     }
-  `;document.head.appendChild(style);
+  `.replaceAll('#gameScreen','body:not(.story-layout) #gameScreen').replace('body.game-active095c','body:not(.story-layout).game-active095c');document.head.appendChild(style);
 }
 
 function installOnionObserver(){

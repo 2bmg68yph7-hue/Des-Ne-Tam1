@@ -1,3 +1,5 @@
+import {asset} from './assets.js';
+import {installInterface,updateMenuTitle,overviewMarkup,heroMarkup,charactersMarkup,relationsMarkup,relationshipHint,readingPreferences,saveReadingPreferences} from './interface.js';
 import {CHAPTER_META,chapterOf} from './chapters.js';
 import {exportBackup,importBackup,validateBackup} from './storage.js?v=096b';
 import {syncActor,activeActor,worldActions,performWorldAction,leaveItem,awardExplorationXp,locationContext,PHASE_LABELS,timePhase} from './world.js';
@@ -14,7 +16,7 @@ import {openStoryBattle} from './battle.js?v=096b';
 
 function getGameScene(state){
   const id=state?.story?.sceneId||state?.scene||'intro';
-  return supplementalScene(id)||CHAPTER3_SCENES[id]||CHAPTER2_SCENES[id]||CHAPTER1_SCENES[id]||getChapter1Scene(state);
+  return supplementalScene(id)||CHAPTER3_SCENES[id]||CHAPTER2_SCENES[id]||CHAPTER1_SCENES[id]||{id,chapter:chapterOf(state),unsupported:true,background:'./bg.jpg',caption:'ПОТРІБНЕ ОНОВЛЕННЯ',text:'Ця сцена ще не підтримується цією версією гри. Ваше проходження збережене. Оновіть гру або експортуйте сейв у налаштуваннях.',choices:[],end:true};
 }
 
 const $=s=>document.querySelector(s);
@@ -88,6 +90,8 @@ function pumpState(){
 function closeState(){noticeBusy=false;$('#stateOverlay').classList.add('hidden');$('#stateOverlay').setAttribute('aria-hidden','true');pumpState()}
 function notifyEvents(events){
   for(const e of events||[]){
+    if(e.type==='itemAdd'&&e.ok)toast('ОТРИМАНО',`${ITEM_DEFS[e.id]?.name||e.id} ×${e.qty||1}`);
+    if((e.type==='damage'||e.type==='health')&&e.actual<0&&e.visible!==false)toast('ЗДОРОВ’Я',`${Math.round(e.actual)}%`);
     if(e.type==='lootPending')toast('РЮКЗАК ПОВНИЙ','Знахідку можна забрати в розділі «Місце», коли звільните місце.');
     if(e.type==='statusAdded')queueState(e.id);
     if(e.type==='statusRemoved')toast('СТАН ЗНЯТО',STATUS_DEFS[e.id]?.name||e.id);
@@ -98,6 +102,7 @@ function notifyEvents(events){
 }
 
 function heroForClothes(){
+  if(activeActor(G)==='evpapiy')return asset('./pigeon_base_095b.webp');
   if(G?.flags?.localClothes)return './man_local.png';
   if(G?.activeStatuses?.includes('scared'))return './man_worry.png';
   if(G?.activeStatuses?.includes('tired'))return './man_tired.png';
@@ -111,7 +116,7 @@ function persist(){
    const saved=emergencySaveRun(snapshot);toast(saved?'РЕЗЕРВНИЙ СЕЙВ':'НЕ ВДАЛОСЯ ЗБЕРЕГТИ',saved?'Стан збережено в браузері.':'Експортуйте проходження перед закриттям гри.');console.warn('Save failed',error);return{localStorage:saved,indexedDB:false};
  });return persistChain;
 }
-function show(screen){for(const id of ['startScreen','howToScreen','gameScreen'])$('#'+id).classList.add('hidden');$('#'+screen).classList.remove('hidden')}
+function show(screen){if(screen!=='gameScreen'){clearSfx();noticeQueue=[];noticeBusy=false;$('#stateOverlay').classList.add('hidden');closeMenu();audioManager.stopAll()}for(const id of ['startScreen','howToScreen','gameScreen'])$('#'+id).classList.add('hidden');$('#'+screen).classList.remove('hidden')}
 
 function askConfirm({title='Почати заново?',text='',okText='Так, почати заново'}={}){
   return new Promise(resolve=>{
@@ -277,6 +282,7 @@ async function beginGame(){
 
 function clearSfx(){for(const t of sfxTimers)clearTimeout(t);sfxTimers=[]}
 async function ensureSceneEntered(scene){
+  if(scene.unsupported)return false;
   const id=scene.id;
   const chapter=Number(scene.chapter||G.chapter||1);
   G.chapter=chapter;G.story.chapter=chapter;
@@ -339,16 +345,17 @@ function renderHeader(){
   $('#threatLine').textContent=`Небезпека: ${th.label}`;
   $('#threatLine').className=`threat ${th.key}`;
   const vals=[['❤️',G.health,'Здоровʼя'],['🍞',G.needs.satiety,'Ситість'],['💧',G.needs.water,'Вода'],['⚡',G.needs.energy,'Бадьорість']];
-  $('#miniNeeds').innerHTML=vals.map(([i,v,label])=>`<span title="${label}">${i} ${Math.round(v)}%</span>`).join('');
+  $('#miniNeeds').innerHTML=vals.map(([i,v,label])=>`<span class="${v<=20?'critical':''}" title="${label}" aria-label="${label}: ${Math.round(v)}%">${i} ${Math.round(v)}%<i><b style="width:${Math.max(0,Math.min(100,v))}%"></b></i></span>`).join('');
 }
 
 function renderStage(scene){
+  $('#stageContext').innerHTML=`<span>${esc(G.world.location)}</span><span>${activeActor(G)==='evpapiy'?'Євпапій':'Степан'}</span>`;
   const root=$('#stageImage');
-  root.style.backgroundImage=`linear-gradient(rgba(5,8,6,.05),rgba(5,8,6,.16)),url('${scene.background||'./bg.jpg'}')`;
+  root.style.backgroundImage=`linear-gradient(rgba(5,8,6,.05),rgba(5,8,6,.16)),url('${asset(scene.background||'./bg.jpg')}')`;
   root.className=`stage-image ${scene.stageTone||''}`;
   if(scene.chapter===7)root.style.setProperty('background-position','center bottom','important');else root.style.removeProperty('background-position');
   const actors=resolveSceneValue(scene.actors||[],G)||[];
-  root.innerHTML=actors.map((a,i)=>{const src=resolveSceneValue(a.src,G);return `<img src="${src}" class="actor ${esc(a.role||'')} ${esc(a.position||'')} actor-${i}" alt="">`}).join('');
+  root.innerHTML=actors.map((a,i)=>{const src=asset(resolveSceneValue(a.src,G));return `<img src="${src}" class="actor ${esc(a.role||'')} ${esc(a.position||'')} actor-${i}" alt="">`}).join('');
 }
 
 function resolveChoices(scene){const xs=resolveSceneValue(scene.choices||[],G)||[];return xs.filter(c=>c&&(!c.showIf||c.showIf(G)))}
@@ -398,15 +405,18 @@ function renderStory(scene){
   }
 }
 
+async function consumeItem(id){
+ if(actionBusy||!G||G.health<=0||G.pendingBattle)return;actionBusy=true;
+ try{const r=useItem(G,id);if(!r.used){toast('НЕ ВИКОРИСТОВУЄТЬСЯ','Ця штука поки сюжетна.');return}G=r.state;notifyEvents(r.events);await persist();await renderGame();toast('ВИКОРИСТАНО',ITEM_DEFS[id].name)}finally{actionBusy=false}
+}
 function renderQuickSlots(){
+  $('.quick-row').classList.toggle('has-slots',G.quickSlots.some(Boolean));
   const root=$('#quickSlots');
   root.innerHTML=G.quickSlots.map((id,i)=>!id?`<button class="quick-slot empty" data-q="${i}">Слот ${i+1}</button>`:`<button class="quick-slot" data-q="${i}">${ITEM_DEFS[id]?.icon||'◻'} ${esc(ITEM_DEFS[id]?.name||id)} <b>×${itemCount(G,id)}</b></button>`).join('');
   root.querySelectorAll('[data-q]').forEach(b=>b.onclick=async()=>{
     const i=Number(b.dataset.q),id=G.quickSlots[i];
     if(!id){openMenu('inventory');return}
-    const r=useItem(G,id);
-    if(!r.used){toast('НЕ ВИКОРИСТОВУЄТЬСЯ','Ця штука поки сюжетна.');return}
-    G=r.state;notifyEvents(r.events);await persist();await renderGame();toast('ВИКОРИСТАНО',ITEM_DEFS[id].name);
+    await consumeItem(id);
   });
 }
 
@@ -419,7 +429,8 @@ function renderActiveStates(){
   }).join(''):'<span class="small">Нічого активного.</span>';
 }
 
-function openMenu(tab='inventory'){
+function openMenu(tab='overview'){
+  if(!G)return;
   currentTab=tab;
   document.body.classList.add('menu-open');
   $('#menuOverlay').classList.remove('hidden');
@@ -430,12 +441,13 @@ function closeMenu(){
   document.body.classList.remove('menu-open');
   $('#menuOverlay').classList.add('hidden');
   $('#menuOverlay').setAttribute('aria-hidden','true');
-  syncSceneAudio(getGameScene(G));
+  if(G&&!$('#gameScreen').classList.contains('hidden'))syncSceneAudio(getGameScene(G));
 }
 function renderMenu(){
+  if(!G)return;updateMenuTitle(currentTab);
   document.querySelectorAll('#menuTabs [data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===currentTab));
   const tm=formatTime(G.clock.totalMinutes);$('#menuMeta').textContent=`Проходження ${G.runId} · День ${tm.day}, ${tm.time}`;
-  ({place:renderPlace,journal:renderJournal,states:renderStates,stats:renderStats,needs:renderNeeds,sleep:renderSleep,inventory:renderInventory,clothes:renderClothes,companions:renderCompanions,relations:renderRelations,map:renderMap,shop:renderShop,settings:renderSettings}[currentTab]||renderInventory)();
+  ({overview:()=>{$('#menuContent').innerHTML=overviewMarkup(G)},hero:()=>{$('#menuContent').innerHTML=heroMarkup(G,heroForClothes())},characters:()=>{$('#menuContent').innerHTML=charactersMarkup(G)},place:renderPlace,journal:renderJournal,states:renderStates,stats:renderStats,needs:renderNeeds,sleep:renderSleep,inventory:renderInventory,clothes:renderClothes,companions:renderCompanions,relations:()=>{$('#menuContent').innerHTML=relationsMarkup(G)},map:renderMap,shop:renderShop,settings:renderSettings}[currentTab]||renderInventory)();
 }
 
 function renderPlace(){
@@ -456,7 +468,7 @@ function renderInventory(){
   const filtered=G.inventory.filter(s=>inventoryCategory==='all'||ITEM_DEFS[s.id]?.category===inventoryCategory);
   root.innerHTML=`<div class="section-title"><h2>Інвентар</h2><span>${G.inventory.length}/16 слотів</span></div><div class="category-tabs">${categories.map(c=>`<button data-cat="${esc(c)}" class="${inventoryCategory===c?'active':''}">${c==='all'?'Все':esc(c)}</button>`).join('')}</div><div class="item-grid">${filtered.length?filtered.map(s=>{const d=ITEM_DEFS[s.id]||{};return `<article class="item-card"><div class="item-icon">${d.icon||'◻️'}</div><div class="item-copy"><b>${esc(d.name||s.id)}</b><span>${esc(d.description||'')}</span><small>${esc(d.category||'')} · ×${s.qty}</small><div class="item-actions">${d.useEffects?.length?`<button data-use="${s.id}">Використати</button>`:''}${G.importantItems.includes(s.id)?'':`<button data-leave="${s.id}">Відкласти ×1</button>`}<button data-slot="0" data-item="${s.id}">1</button><button data-slot="1" data-item="${s.id}">2</button><button data-slot="2" data-item="${s.id}">3</button></div></div></article>`}).join(''):'<div class="empty-state">Тут поки пусто.</div>'}</div>`;
   root.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{inventoryCategory=b.dataset.cat;renderInventory()});
-  root.querySelectorAll('[data-use]').forEach(b=>b.onclick=async()=>{const r=useItem(G,b.dataset.use);if(!r.used)return;G=r.state;notifyEvents(r.events);await persist();await renderGame();renderInventory()});
+  root.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>consumeItem(b.dataset.use));
   root.querySelectorAll('[data-leave]').forEach(b=>b.onclick=async()=>{if(actionBusy)return;actionBusy=true;try{const r=leaveItem(G,b.dataset.leave);if(!r.accepted)return;G=r.state;await persist();await renderGame();toast('ВІДКЛАДЕНО','Річ можна забрати назад у розділі «Місце».')}finally{actionBusy=false}});
   root.querySelectorAll('[data-slot]').forEach(b=>b.onclick=async()=>{assignQuickSlot(G,Number(b.dataset.slot),b.dataset.item);await persist();renderQuickSlots();renderInventory();toast('ШВИДКИЙ СЛОТ',`Поставлено в слот ${Number(b.dataset.slot)+1}`)});
 }
@@ -490,13 +502,14 @@ function renderClothes(){
 }
 
 function renderStats(){
+  if(activeActor(G)==='evpapiy'){renderCompanions();return}
   const mods=statModifiers(G),root=$('#menuContent'),p=G.heroProgression||{level:1,xp:0,points:0};
   const xp=Math.max(0,Math.min(99,Number(p.xp||0)));
   root.innerHTML=`<div class="section-title"><h2>Характеристики</h2><span>ГЕРОЙ · РІВЕНЬ ${p.level}</span></div>
     <div class="progression-card"><div class="progression-head"><div><b>Досвід</b><span>${xp}/100 XP</span></div><div><b>Очки прокачки</b><strong>${p.points}</strong></div></div><div class="progression-bar"><i style="width:${xp}%"></i></div><small>100 XP = новий рівень + 1 очко. Очки ви самі вкладаєте в характеристики.</small></div>
     <div class="stat-list">${STAT_KEYS.map(k=>{const st=G.stats[k]||{level:1},level=Math.max(1,Number(st.level||1)),mod=Number(mods[k]||0),now=effectiveStat(G,k),id=`stat-desc-${k}`;return `<article class="stat-card stat-upgrade-card"><div class="stat-head"><div><b>${STAT_LABELS[k]}</b> <button class="info-btn" type="button" data-info="${id}">ⓘ</button><div class="stat-level">Рівень ${level}${mod?` · <span class="${mod>0?'buff-text':'debuff-text'}">стани ${mod>0?'+':''}${mod}</span> · зараз ${now}`:''}</div></div><button type="button" class="stat-plus" data-stat-upgrade="${k}" ${p.points<=0||level>=10?'disabled':''}>+1</button></div><div class="stat-desc" id="${id}">${esc(STAT_DESCRIPTIONS[k])}</div><div class="stat-flavor">${esc(statFlavorText(k,level))}</div></article>`}).join('')}</div>`;
   root.querySelectorAll('.info-btn').forEach(btn=>btn.onclick=()=>{const el=$('#'+btn.dataset.info);if(el)el.classList.toggle('open')});
-  root.querySelectorAll('[data-stat-upgrade]').forEach(btn=>btn.onclick=async()=>{if(!spendHeroPoint(G,btn.dataset.statUpgrade))return;await persist();renderStats();renderHeader();toast('ПРОКАЧАНО',`${STAT_LABELS[btn.dataset.statUpgrade]} +1`)})
+  root.querySelectorAll('[data-stat-upgrade]').forEach(btn=>btn.onclick=async()=>{if(actionBusy||G.pendingBattle||!spendHeroPoint(G,btn.dataset.statUpgrade))return;await persist();renderStats();renderHeader();toast('ПРОКАЧАНО',`${STAT_LABELS[btn.dataset.statUpgrade]} +1`)})
 }
 
 function needTone(v){v=Number(v)||0;if(v>40)return'needgood';if(v>20)return'needmid';if(v>5)return'needlow';return'needcrit'}
@@ -622,14 +635,14 @@ function renderCompanions(){
       const r=G.relationships?.evpapiy?.values||{},p=c.progression||{level:c.level||1,xp:0,points:0,attack:1,aggression:1,health:1};const xp=Math.max(0,Math.min(99,Number(p.xp||0)));
       const rel=[['ПІЗДАБОЛЬСТВО',r.bullshit,'як часто він бреше та підйобує.'],['ДОВІРА',r.trust,'чим вище, тим більше шансів, шо ця жирна падла реально скаже щось корисне.'],['ОБРАЗА',r.offense,'Євпапій памʼятає більше, ніж хотілося б.'],['ЖАДІБНІСТЬ',r.greed,'наскільки легко його задобрити їжею.']];
       const combat=[['attack','АТАКА',p.attack,'сильніше бʼє, коли ви таки використовуєте голуба як зброю.'],['aggression','АГРЕСІЯ',p.aggression,'додає шкоди його бойовим діям.'],['health','ЗДОРОВʼЯ',p.health,`максимум зараз ${c.maxHp} HP.`]];
-      return `<article class="companion-profile"><div class="companion-main"><img src="${esc(c.portrait||'./pigeon_base.png')}" alt="Євпапій"><div class="companion-main-copy"><div class="companion-name">${esc(c.name||'Євпапій')} · РІВЕНЬ ${p.level}</div><div class="companion-state">${esc(c.active?'З вами':c.state||'Не з вами')}</div><p>До вас прибився жирний наглий голуб, який дуже бісить.</p></div></div>
+      return `<article class="companion-profile"><div class="companion-main"><img src="${asset(c.portrait||'./pigeon_base.png')}" alt="Євпапій"><div class="companion-main-copy"><div class="companion-name">${esc(c.name||'Євпапій')} · РІВЕНЬ ${p.level}</div><div class="companion-state">${esc(c.active?'З вами':c.state||'Не з вами')}</div><p>До вас прибився жирний наглий голуб, який дуже бісить.</p></div></div>
         <div class="progression-card compact"><div class="progression-head"><div><b>Досвід</b><span>${xp}/100 XP</span></div><div><b>Очки прокачки</b><strong>${p.points}</strong></div></div><div class="progression-bar"><i style="width:${xp}%"></i></div></div>
         <div class="companion-characteristics"><h3>Бойова прокачка</h3>${combat.map(([key,label,value,desc])=>`<div class="comp-stat upgrade"><div class="comp-stat-head"><b>${label} · ${value}</b><button type="button" data-evp-upgrade="${key}" ${p.points<=0||value>=10?'disabled':''}>+1</button></div><span>${esc(desc)}</span></div>`).join('')}</div>
-        <div class="companion-characteristics"><h3>Характер і стосунки</h3>${rel.map(([label,value,desc])=>`<div class="comp-stat"><div class="comp-stat-head"><b>${label}</b>${companionDots(value)}</div><span>${esc(desc)}</span></div>`).join('')}</div><div class="companion-warning">З ним може бути легше. Може, веселіше. А може, на вас просто чекає жирна підстава.</div></article>`;
+        <div class="companion-characteristics"><h3>Характер і стосунки</h3><p>${esc(relationshipHint('evpapiy',G))}</p></div><div class="companion-warning">З ним може бути легше. Може, веселіше. А може, на вас просто чекає жирна підстава.</div></article>`;
     }
     return `<article class="companion-card"><img src="${esc(c.portrait||'')}" alt=""><div><b>${esc(c.name)}</b><span>${esc(c.active?'З вами':c.state||'Не з вами')}</span>${c.facts?.map(x=>`<small>${esc(x)}</small>`).join('')||''}</div></article>`
   }).join('')}`;
-  document.querySelectorAll('[data-evp-upgrade]').forEach(btn=>btn.onclick=async()=>{if(!spendEvpPoint(G,btn.dataset.evpUpgrade))return;await persist();renderCompanions();toast('ЄВПАПІЙ ПРОКАЧАНИЙ',`${btn.dataset.evpUpgrade==='attack'?'АТАКА':btn.dataset.evpUpgrade==='aggression'?'АГРЕСІЯ':'ЗДОРОВʼЯ'} +1`)})
+  document.querySelectorAll('[data-evp-upgrade]').forEach(btn=>btn.onclick=async()=>{if(actionBusy||G.pendingBattle||!spendEvpPoint(G,btn.dataset.evpUpgrade))return;await persist();renderCompanions();toast('ЄВПАПІЙ ПРОКАЧАНИЙ',`${btn.dataset.evpUpgrade==='attack'?'АТАКА':btn.dataset.evpUpgrade==='aggression'?'АГРЕСІЯ':'ЗДОРОВʼЯ'} +1`)})
 }
 
 function renderRelations(){
@@ -671,6 +684,7 @@ function renderMap(){
 }
 
 function renderShop(){
+  if(activeActor(G)!=='stepan'||!locationContext(G,getGameScene(G)).safe){$('#menuContent').innerHTML='<h2>Крамничка</h2><p>До припасів і роботи повернетеся в безпечному дворі.</p>';return}
   const surcharge=G.chapter>=3&&G.flags.suspiciousDealConsequencePending?2:0;
   const items=[['water',4+surcharge],['aspirin',8+surcharge],['onion',2+surcharge]];
   const day=Math.floor(Number(G.clock?.totalMinutes||0)/1440)+1;
@@ -681,7 +695,7 @@ function renderShop(){
   ];
   $('#menuContent').innerHTML=`<div class="section-title"><h2>Крамничка</h2><span><b>${G.money}</b> монет</span></div>${G.flags.shopUnlocked?`<div class="shop-money">У вас зараз <b>${G.money} монет</b>.</div><div class="shop-grid">${items.map(([id,p])=>`<article class="item-card"><div class="item-icon">${ITEM_DEFS[id].icon}</div><div class="item-copy"><b>${esc(ITEM_DEFS[id].name)}</b><span>${p} мон.</span><button data-buy="${id}" data-price="${p}">Купити</button></div></article>`).join('')}</div><div class="section-title shop-work-title"><h2>Як заробити</h2><span>День ${day}</span></div><div class="info-card">Підмести двір і нарубати дрова можна раз на день.</div><div class="shop-jobs">${jobs.map(j=>`<article class="job-card ${j.done?'done':''}"><div><b>${esc(j.title)}</b><span>${j.done?(j.repeat==='daily'?'На сьогодні вже зробили.':'Уже зробили.'):`${j.minutes} хв · +${j.pay} монет`}</span></div><button data-job="${j.id}" ${j.done?'disabled':''}>${j.done?'Готово':'Взятись'}</button></article>`).join('')}</div>`:'<div class="locked-big">Ще закрито.</div>'}`;
   if(surcharge){const note=document.createElement('div');note.className='info-card';note.textContent='За незавершене підозріле діло припаси дорожчі на 2 монети. У розділі «Місце» можна розрахуватися або відпрацювати залишок.';$('#menuContent .shop-grid')?.before(note)}
-  document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=async()=>{const p=Number(b.dataset.price);if(G.money<p){toast('НЕМА ГРОШЕЙ','Ну от так.');return}if(!addItem(G,b.dataset.buy,1)){toast('НЕМА МІСЦЯ','Інвентар забитий.');return}G.money-=p;await persist();renderShop()});
+  document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=async()=>{if(actionBusy||G.pendingBattle||G.health<=0)return;const p=Number(b.dataset.price);if(G.money<p){toast('НЕМА ГРОШЕЙ','Ну от так.');return}if(!addItem(G,b.dataset.buy,1)){toast('НЕМА МІСЦЯ','Інвентар забитий.');return}G.money-=p;await persist();renderShop()});
   document.querySelectorAll('[data-job]').forEach(b=>b.onclick=async()=>{
     const j=jobs.find(x=>x.id===b.dataset.job);if(!j||j.done||actionBusy||!locationContext(G,getGameScene(G)).safe)return;
     actionBusy=true;try{
@@ -692,8 +706,12 @@ function renderShop(){
 }
 
 async function renderSettings(){
-  const root=$('#menuContent'),a=audioManager.getSettings(),manual=await listManual(G.runId);
+  const root=$('#menuContent'),a=audioManager.getSettings(),run=G.runId,manual=await listManual(run);
+  if(currentTab!=='settings'||G?.runId!==run||$('#menuOverlay').classList.contains('hidden'))return;
+  root.dataset.testMode=G.flags.testMode?'1':'0';
   root.innerHTML=`<div class="section-title"><h2>Налаштування</h2></div><div class="settings-block"><label><input id="soundEnabled" type="checkbox" ${a.enabled?'checked':''}> Звук</label><label>Загальна гучність <input id="masterVol" type="range" min="0" max="1" step=".05" value="${a.master}"></label><label>Атмосфера <input id="ambientVol" type="range" min="0" max="1" step=".05" value="${a.ambient}"></label><label>Ефекти <input id="effectsVol" type="range" min="0" max="1" step=".05" value="${a.effects}"></label><button id="testSound">Перевірити клік</button></div><div class="section-title"><h2>Ручні сейви</h2></div><div class="save-grid">${manual.map(x=>`<article><b>Слот ${x.slot}</b><span>${x.state?'Є сейв':'Порожньо'}</span><div><button data-save="${x.slot}">Зберегти</button>${x.state?`<button data-load="${x.slot}">Завантажити</button>`:''}</div></article>`).join('')}</div>`;
+  const p=readingPreferences(),reading=document.createElement('section');reading.className='settings-block';reading.innerHTML=`<h2>Читання</h2><label>Розмір тексту <select id=readingFont>${[16,17,19].map(v=>`<option value=${v} ${v===p.font?'selected':''}>${v} px</option>`).join('')}</select></label><label>Розмір ілюстрації <select id=readingArt>${[[.85,'Компактна'],[1,'Велика'],[1.15,'Ще більша']].map(([v,l])=>`<option value=${v} ${v===p.art?'selected':''}>${l}</option>`).join('')}</select></label><label><input type=checkbox id=readingMotion ${p.reducedMotion?'checked':''}> Менше анімацій</label>`;root.prepend(reading);
+  reading.onchange=()=>saveReadingPreferences({font:Number($('#readingFont').value),art:Number($('#readingArt').value),reducedMotion:$('#readingMotion').checked});
   $('#soundEnabled').onchange=e=>audioManager.setEnabled(e.target.checked);
   for(const [id,k] of [['masterVol','master'],['ambientVol','ambient'],['effectsVol','effects']])$('#'+id).oninput=e=>audioManager.setVolume(k,Number(e.target.value));
   $('#testSound').onclick=()=>audioManager.testEffect();
@@ -724,9 +742,9 @@ $('#testModeBtn')?.addEventListener('click',()=>{if(testerUnlocked())renderStart
 $('#aboutCloseBtn').onclick=closeAbout;
 $('#aboutOverlay').onclick=e=>{if(e.target===$('#aboutOverlay'))closeAbout()};
 $('#beginGameBtn').onclick=beginGame;
-$('#menuBtn').onclick=()=>openMenu('inventory');
+$('#menuBtn').onclick=()=>openMenu('overview');
 $('#closeMenuBtn').onclick=closeMenu;
-$('#exitBtn').onclick=async()=>{await persist();renderStart('home')};
+$('#exitBtn').onclick=async()=>{await persist();closeMenu();renderStart('home')};
 $('#stateOkBtn').onclick=closeState;
 $('#miniNeeds').onclick=()=>openMenu('needs');
 $('#miniNeeds').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openMenu('needs')}};
@@ -737,5 +755,6 @@ window.addEventListener('beforeunload',()=>{if(G)emergencySaveRun(G)});
 window.addEventListener('dnt:battlecheckpoint',event=>{if(G?.runId===event.detail?.runId)G=event.detail});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&G)emergencySaveRun(G)});
 
+installInterface({openMenu,closeMenu});
 installTesterUnlock();
 renderStart('home');

@@ -66,6 +66,7 @@ class AudioManager{
     this.ctx=null;
     this.unlocked=false;
     this.currentAtmosphere='silent';
+    this.atmosphereRevision=0;
     this.ambientLayers=new Map();
     this.activeEffects=new Map();
     this.dogTimer=null;
@@ -236,7 +237,7 @@ class AudioManager{
     else audio.addEventListener('loadedmetadata',apply,{once:true});
   }
 
-  async ensureAmbientLayer(id,localVolume){
+  async ensureAmbientLayer(id,localVolume,revision=this.atmosphereRevision){
     const src=this.registry.ambient[id];
     if(!src)return false;
 
@@ -270,10 +271,13 @@ class AudioManager{
       };
       this.ambientLayers.set(id,entry);
       await audio.play();
+      if(revision!==this.atmosphereRevision||!this.settings.enabled||this.ambientLayers.get(id)!==entry){
+        audio.pause();if(this.ambientLayers.get(id)===entry)this.ambientLayers.delete(id);return false;
+      }
       this.fadeEntry(entry,this.volumeFor('ambient',localVolume),FADE_MS);
       return true;
     }catch{
-      this.ambientLayers.delete(id);
+      if(this.ambientLayers.get(id)===entry)this.ambientLayers.delete(id);
       return false;
     }
   }
@@ -323,6 +327,9 @@ class AudioManager{
 
   async setAtmosphere(name='silent'){
     const profile=ATMOSPHERES[name]||ATMOSPHERES.silent;
+    const changed=this.currentAtmosphere!==name;
+    if(changed){this.atmosphereRevision++;this.stopAmbientNow()}
+    const revision=this.atmosphereRevision;
     this.currentAtmosphere=name;
     this.clearDogTimer();
 
@@ -336,20 +343,21 @@ class AudioManager{
     }
 
     const ok=await this.unlock();
-    if(!ok)return false;
+    if(!ok||revision!==this.atmosphereRevision||!this.settings.enabled)return false;
 
     let started=false;
     for(const [id,volume] of profile.layers){
-      const layerOk=await this.ensureAmbientLayer(id,volume);
+      const layerOk=await this.ensureAmbientLayer(id,volume,revision);
       started=started||layerOk;
     }
 
-    this.scheduleDogs(profile.dogs);
+    if(revision===this.atmosphereRevision)this.scheduleDogs(profile.dogs);
     return started;
   }
 
   async playEffect(id,{volume=1,allowOverlap=false}={}){
     if(!this.settings.enabled)return false;
+    const revision=this.atmosphereRevision;
 
     const def=this.registry.effects[id];
     if(!def)return false;
@@ -360,7 +368,7 @@ class AudioManager{
     }
 
     const ok=await this.unlock();
-    if(!ok)return false;
+    if(!ok||revision!==this.atmosphereRevision||!this.settings.enabled)return false;
 
     try{
       const audio=new Audio();
@@ -391,6 +399,7 @@ class AudioManager{
 
       this.activeEffects.set(id,entry);
       await audio.play();
+      if(revision!==this.atmosphereRevision||!this.settings.enabled){audio.pause();if(this.activeEffects.get(id)===entry)this.activeEffects.delete(id);return false}
       return true;
     }catch{
       this.activeEffects.delete(id);
@@ -420,6 +429,7 @@ class AudioManager{
   }
 
   stopAll(){
+    this.atmosphereRevision++;
     this.clearDogTimer();
     this.stopEffects();
     this.stopAmbientNow();

@@ -1,0 +1,66 @@
+{
+  "suite": "world",
+  "results": [
+    {
+      "name": "day and night expose different real actions",
+      "passed": true
+    },
+    {
+      "name": "attention changes search duration and hidden find",
+      "passed": true
+    },
+    {
+      "name": "strength changes work cost",
+      "passed": true
+    },
+    {
+      "name": "charisma and past trust both change help; a poor build still has an alternative",
+      "passed": true
+    },
+    {
+      "name": "agility prevents a night-search injury",
+      "passed": true
+    },
+    {
+      "name": "pofigism prevents fear from night exploration",
+      "passed": true
+    },
+    {
+      "name": "ahui reduces the cost of checking fog without ending the story",
+      "passed": true
+    },
+    {
+      "name": "once-only stock and XP survive reload",
+      "passed": true
+    },
+    {
+      "name": "time advances only on actions; browsing costs nothing",
+      "passed": true
+    },
+    {
+      "name": "full-bag find remains available after making room",
+      "passed": true
+    },
+    {
+      "name": "water, food and fatigue produce actual statuses and recover",
+      "passed": true
+    },
+    {
+      "name": "washing removes skunk and dirty-clothing status",
+      "passed": true
+    },
+    {
+      "name": "danger blocks long rest and scavenging without hiding combat alternatives",
+      "passed": true
+    },
+    {
+      "name": "chapter 6 uses separate supplies and clothing, chapter 7 restores Stepan",
+      "passed": true
+    },
+    {
+      "name": "Place action through actual menu updates live state, save and journal",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

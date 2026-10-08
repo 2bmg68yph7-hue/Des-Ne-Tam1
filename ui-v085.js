@@ -58,6 +58,7 @@ function buildStart085(){
 }
 
 function buildGroupedMenu085(){
+  if(document.body.classList.contains("story-layout"))return;
   const sheet=q085('.menu-sheet'),head=q085('.menu-head'),oldTabs=q085('#menuTabs'),close=q085('#closeMenuBtn');
   if(!sheet||!head||!oldTabs||!close||q085('#menuPrimary085'))return;
   const actions=document.createElement('div');actions.className='menu-head-actions';

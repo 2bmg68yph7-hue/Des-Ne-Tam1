@@ -9,11 +9,17 @@ const CHAPTER=(r,c)=>`${SAVE_NAMESPACE}:run:${r}:chapter:${c}`;
 function localGet(key){try{return window.localStorage.getItem(key)}catch{return null}}
 function localSet(key,value){try{window.localStorage.setItem(key,value);return true}catch{return false}}
 function localDel(key){try{window.localStorage.removeItem(key);return true}catch{return false}}
+let dbRetryAt=0;
 function openDb(){
+  if(Date.now()<dbRetryAt)return Promise.resolve(null);
   if(typeof indexedDB==='undefined')return Promise.resolve(null);
-  return new Promise(resolve=>{try{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE))req.result.createObjectStore(STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null)}catch{resolve(null)}});
+  return new Promise(resolve=>{
+    let settled=false;const finish=db=>{if(settled){db?.close();return}settled=true;clearTimeout(timer);if(!db)dbRetryAt=Date.now()+3000;resolve(db)};
+    const timer=setTimeout(()=>finish(null),1500);
+    try{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE))req.result.createObjectStore(STORE)};req.onsuccess=()=>{const db=req.result;db.onversionchange=()=>db.close();finish(db)};req.onerror=req.onblocked=()=>finish(null)}catch{finish(null)}
+  });
 }
-async function idbGet(key){const db=await openDb();if(!db)return null;return new Promise(resolve=>{try{const req=db.transaction(STORE,'readonly').objectStore(STORE).get(key);req.onsuccess=()=>resolve(req.result??null);req.onerror=()=>resolve(null)}catch{resolve(null)}})}
+async function idbGet(key){const db=await openDb();if(!db)return null;return new Promise(resolve=>{try{const tx=db.transaction(STORE,'readonly'),req=tx.objectStore(STORE).get(key);let value=null;req.onsuccess=()=>{value=req.result??null};tx.oncomplete=()=>{db.close();resolve(value)};tx.onerror=tx.onabort=()=>{db.close();resolve(null)}}catch{db.close();resolve(null)}})}
 async function idbMutation(key,value,remove=false){const db=await openDb();if(!db)return false;return new Promise(resolve=>{try{const tx=db.transaction(STORE,'readwrite');if(remove)tx.objectStore(STORE).delete(key);else tx.objectStore(STORE).put(value,key);tx.oncomplete=()=>{db.close();resolve(true)};tx.onerror=tx.onabort=()=>{db.close();resolve(false)}}catch{db.close();resolve(false)}})}
 const idbSet=(key,value)=>idbMutation(key,value);
 const idbDel=key=>idbMutation(key,null,true);

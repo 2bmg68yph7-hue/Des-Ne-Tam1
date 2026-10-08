@@ -634,6 +634,7 @@ function callNativeShop099(){
 }
 async function renderShopGate099(){const s=await currentState099();if(!shopSafe099(s)){shopBlocked099();return}if(!callNativeShop099())shopBlocked099()}
 function installMenu099(){
+  if(document.body.classList.contains('story-layout'))return;
   replaceTab099('characters',renderCharacters099);
   replaceTab099('relations',renderRelations099);
   replaceTab099('map',renderMap099);
@@ -728,6 +729,7 @@ async function syncActiveHeroUi099e(){
   try{const s=await currentState099();applyActiveHeroUi099e(Boolean(s?.flags?.activeHero097==='evpapiy'&&s?.flags?.ch4StepanMissing))}catch{}
 }
 function installActiveHeroUiFix099e(){
+  if(document.body.classList.contains('story-layout'))return;
   const target=document.querySelector('#storyKicker');if(!target||target.dataset.heroFix099e)return;target.dataset.heroFix099e='1';
   const run=()=>{syncActiveHeroUi099e();setTimeout(syncActiveHeroUi099e,0);setTimeout(syncActiveHeroUi099e,80)};
   new MutationObserver(run).observe(target,{childList:true,subtree:true,characterData:true});

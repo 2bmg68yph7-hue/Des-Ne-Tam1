@@ -1,0 +1,22 @@
+{
+  "suite": "combat",
+  "results": [
+    {
+      "name": "same encounter, seed and choices: preparation changes the health cost and survives in memory",
+      "passed": true
+    },
+    {
+      "name": "earlier trust changes the cost of pigeon support",
+      "passed": true
+    },
+    {
+      "name": "low energy does not hide an affordable prayer or available food",
+      "passed": true
+    },
+    {
+      "name": "reloading a scripted knife strike preserves knockout, damage and knife consumption",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

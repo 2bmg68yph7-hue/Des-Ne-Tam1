@@ -244,6 +244,7 @@ async function renderMap096(){
 }
 function addCharactersTab096(){const nav=document.querySelector('#menuTabs');if(!nav||nav.querySelector('[data-tab="characters"]'))return;const b=document.createElement('button');b.dataset.tab='characters';b.textContent='Персонажі';const rel=nav.querySelector('[data-tab="relations"]');nav.insertBefore(b,rel||null);b.onclick=renderCharacters096}
 function installMenuHooks096(){
+  if(document.body.classList.contains('story-layout'))return;
   addCharactersTab096();
   const stats=document.querySelector('#menuTabs [data-tab="stats"]');stats?.addEventListener('click',()=>setTimeout(decorateStats096,0),true);
   const needs=document.querySelector('#menuTabs [data-tab="needs"]');needs?.addEventListener('click',()=>setTimeout(decorateNeeds096,0),true);

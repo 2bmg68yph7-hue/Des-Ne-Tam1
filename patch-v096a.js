@@ -205,6 +205,7 @@ function replaceTab097(tab,handler){
   const neu=old.cloneNode(true);neu.dataset.v097='1';old.replaceWith(neu);neu.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();handler(neu)},true);return neu;
 }
 function installMenu097(){
+  if(document.body.classList.contains('story-layout'))return;
   replaceTab097('characters',async()=>{const s=await currentState097();if(s)renderCharacters097(s)});
   replaceTab097('map',async()=>{const s=await currentState097();if(s)renderMap097(s)});
   const shopOld=document.querySelector('#menuTabs [data-tab="shop"]');
@@ -233,6 +234,7 @@ async function syncHeroMode097(){
   if(missing){const n=document.querySelector('#miniNeeds');if(n)n.innerHTML='<span>🕊️ Керуєте Євпапієм</span>'}
 }
 function installHeroWatcher097(){
+  if(document.body.classList.contains('story-layout'))return;
   const target=document.querySelector('#storyKicker');if(!target||target.dataset.watch097)return;target.dataset.watch097='1';
   const obs=new MutationObserver(()=>{syncHeroMode097();setTimeout(cleanPlayerCopy097,0)});obs.observe(target,{childList:true,subtree:true,characterData:true});
   document.querySelector('#menuBtn')?.addEventListener('click',()=>setTimeout(async()=>{
