@@ -1,0 +1,446 @@
+{
+  "repository": "2bmg68yph7-hue/Des-Ne-Tam1",
+  "commit": "c829cccfc58824942e1343da75b1a7ac4e457a1e",
+  "date": "2026-10-08",
+  "gameCodeModified": false,
+  "sourceFiles": 49,
+  "sourceBytes": 729506,
+  "missingLiteralLocalReferences": [],
+  "graph": {
+    "allScenes": 229,
+    "reachableInSampledGraph": 179,
+    "unreachableSceneIds": [
+      "meet",
+      "puddle",
+      "state_pigeon_debt",
+      "ch2_fence",
+      "ch2_real_p2",
+      "ch2_real_p3",
+      "ch2_crowd_p2",
+      "ch2_crowd_p3",
+      "ch2_state_hungry_table",
+      "legend_tease096",
+      "legend_look096",
+      "legend_pofig096",
+      "ch3_wakeup",
+      "ch3_branch_pending",
+      "ch3_call_pigeon_p2",
+      "ch3_vodka_p2",
+      "ch3_vodka_p3",
+      "ch3_vodka_p4",
+      "ch3_garlic_p2",
+      "ch3_garlic_p3",
+      "ch3_garlic_p4",
+      "ch3_garlic_hit_p2",
+      "ch3_ask_pigeon_p2",
+      "ch3_run_p2",
+      "ch3_pray_p2",
+      "ch3_pray_p3",
+      "ch3_wakeup_p2",
+      "ch3_wakeup_p3",
+      "ch3_wakeup_p4",
+      "ch3_galina_p2",
+      "ch3_galina_p3",
+      "ch3_cat_intro095n",
+      "ch3_cat_polite095n",
+      "ch3_cat_insult095n",
+      "ch3_cat_pet095n",
+      "ch3_state_tipsy",
+      "ch4_ask_semen",
+      "ch4_ask_galina",
+      "ch4_angry",
+      "ch4_suspicious",
+      "ch4_tired",
+      "ch4_watch",
+      "ch4_cat_moves",
+      "ch4_evp_block",
+      "ch4_voice",
+      "ch4_fog_deep",
+      "ch4_fall",
+      "ch4_evp_after",
+      "ch5_evp_crash099c",
+      "ch5_evp_search099c"
+    ],
+    "chapterSummary": [
+      {
+        "chapter": 1,
+        "scenes": 40,
+        "choiceVariants": 66,
+        "timedChoiceVariants": 14,
+        "battleChoiceVariants": 0
+      },
+      {
+        "chapter": 2,
+        "scenes": 40,
+        "choiceVariants": 51,
+        "timedChoiceVariants": 6,
+        "battleChoiceVariants": 0
+      },
+      {
+        "chapter": 3,
+        "scenes": 38,
+        "choiceVariants": 51,
+        "timedChoiceVariants": 7,
+        "battleChoiceVariants": 4
+      },
+      {
+        "chapter": 4,
+        "scenes": 17,
+        "choiceVariants": 32,
+        "timedChoiceVariants": 0,
+        "battleChoiceVariants": 0
+      },
+      {
+        "chapter": 5,
+        "scenes": 26,
+        "choiceVariants": 43,
+        "timedChoiceVariants": 0,
+        "battleChoiceVariants": 0
+      },
+      {
+        "chapter": 6,
+        "scenes": 8,
+        "choiceVariants": 8,
+        "timedChoiceVariants": 0,
+        "battleChoiceVariants": 0
+      },
+      {
+        "chapter": 7,
+        "scenes": 10,
+        "choiceVariants": 12,
+        "timedChoiceVariants": 0,
+        "battleChoiceVariants": 0
+      }
+    ],
+    "sampledStates": 18,
+    "exhaustive": false
+  },
+  "uiRun": {
+    "steps": 116,
+    "final": {
+      "scene": "ch7_shed_truth100",
+      "chapter": 4,
+      "time": 2520,
+      "health": 93,
+      "energy": 78,
+      "xp": {
+        "level": 1,
+        "xp": 45,
+        "xpToNext": 100,
+        "points": 0
+      },
+      "kicker": "ГЛАВА 7 · хто кого підібрав",
+      "choices": []
+    },
+    "javascriptErrors": [],
+    "viewports": [
+      {
+        "width": 320,
+        "height": 568,
+        "scrollWidth": 320,
+        "stage": {
+          "width": 294,
+          "height": 178,
+          "backgroundSize": "cover, cover",
+          "backgroundPosition": "50% 50%, 50% 50%"
+        },
+        "actors": [
+          {
+            "src": "http://127.0.0.1:56643/stepan_smirk_100.png",
+            "width": 126,
+            "height": 160,
+            "loaded": true
+          },
+          {
+            "src": "http://127.0.0.1:56643/darina_reveal_100.png",
+            "width": 118,
+            "height": 162,
+            "loaded": true
+          }
+        ]
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "stage": {
+          "width": 364,
+          "height": 251,
+          "backgroundSize": "cover, cover",
+          "backgroundPosition": "50% 50%, 50% 50%"
+        },
+        "actors": [
+          {
+            "src": "http://127.0.0.1:56643/stepan_smirk_100.png",
+            "width": 157,
+            "height": 226,
+            "loaded": true
+          },
+          {
+            "src": "http://127.0.0.1:56643/darina_reveal_100.png",
+            "width": 146,
+            "height": 229,
+            "loaded": true
+          }
+        ]
+      },
+      {
+        "width": 430,
+        "height": 932,
+        "scrollWidth": 430,
+        "stage": {
+          "width": 404,
+          "height": 253,
+          "backgroundSize": "cover, cover",
+          "backgroundPosition": "50% 50%, 50% 50%"
+        },
+        "actors": [
+          {
+            "src": "http://127.0.0.1:56643/stepan_smirk_100.png",
+            "width": 174,
+            "height": 228,
+            "loaded": true
+          },
+          {
+            "src": "http://127.0.0.1:56643/darina_reveal_100.png",
+            "width": 162,
+            "height": 230,
+            "loaded": true
+          }
+        ]
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "scrollWidth": 844,
+        "stage": {
+          "width": 806,
+          "height": 454,
+          "backgroundSize": "cover, cover",
+          "backgroundPosition": "50% 50%, 50% 50%"
+        },
+        "actors": [
+          {
+            "src": "http://127.0.0.1:56643/stepan_smirk_100.png",
+            "width": 322,
+            "height": 408,
+            "loaded": true
+          },
+          {
+            "src": "http://127.0.0.1:56643/darina_reveal_100.png",
+            "width": 314,
+            "height": 408,
+            "loaded": true
+          }
+        ]
+      }
+    ],
+    "finalCharacters": "Персонажі\nЄвпапій\nБаба Галя\nРиже гамно\nТРУПОСМЕРД\nСемен\nДарина",
+    "finalRelationships": "Стосунки\nЛюди й всяка інша живність памʼятають, шо ви витворяли. Наскільки ви їм подобаєтесь, гра цифрами не показує.\nЄвпапій\nСТАВЛЕННЯ: ???\nДивіться на його реакції й поведінку.\nБаба Галя\nСТАВЛЕННЯ: ???\nДивіться на його реакції й поведінку.\nПостать\nСТАВЛЕННЯ: ???\nДивіться на його реакції й поведінку.\nРиже гамно\nСТАВЛЕННЯ: ???\nДивіться на його реакції й поведінку.\nТРУПОСМЕРД\nСТАВЛЕННЯ: ???\nДивіться на його реакції й поведінку.\nСемен\nСТАВЛЕННЯ: ???\nДивіться на його реакції й поведінку."
+  },
+  "checks": {
+    "normalization": [
+      {
+        "input": 1,
+        "output": 1,
+        "story": 1,
+        "scene": "intro"
+      },
+      {
+        "input": 2,
+        "output": 2,
+        "story": 2,
+        "scene": "ch2_intro"
+      },
+      {
+        "input": 3,
+        "output": 3,
+        "story": 3,
+        "scene": "ch3_intro"
+      },
+      {
+        "input": 4,
+        "output": 4,
+        "story": 4,
+        "scene": "ch4_intro"
+      },
+      {
+        "input": 5,
+        "output": 4,
+        "story": 4,
+        "scene": "ch5_intro"
+      },
+      {
+        "input": 6,
+        "output": 4,
+        "story": 4,
+        "scene": "ch6_intro099d"
+      },
+      {
+        "input": 7,
+        "output": 4,
+        "story": 4,
+        "scene": "ch7_intro100"
+      },
+      {
+        "input": 8,
+        "output": 4,
+        "story": 4,
+        "scene": "ch8_intro"
+      }
+    ],
+    "manualCheckpoint": {
+      "scene": "ch7_son100",
+      "chapter": 4,
+      "checkpointScene": "ch4_intro",
+      "checkpointChapter": 4
+    },
+    "expiredAfterScriptedTime": {
+      "clock": 2520,
+      "timer": 430,
+      "active": [
+        "suspicious"
+      ]
+    },
+    "partialInventoryAdd": {
+      "before": 4,
+      "ok": false,
+      "after": 5
+    },
+    "clothes": {
+      "before": "leather_vest",
+      "after": "modern_jacket",
+      "owned": [
+        "modern_shirt",
+        "modern_jacket",
+        "modern_pants",
+        "modern_boots"
+      ]
+    },
+    "testItemReplenishment": {
+      "before": 3,
+      "after": 3,
+      "beforeTimer": 430,
+      "afterTimer": 430
+    },
+    "healingAtZeroHealth": 25,
+    "menuMutations": {
+      "mutations": 102,
+      "revealed": true
+    },
+    "idbOnlyPersistence": {
+      "pre": {
+        "written": {
+          "at": 1791453636308,
+          "localStorage": true,
+          "indexedDB": true
+        },
+        "local": null
+      },
+      "early": {
+        "idb": "undefined",
+        "body": "v0.9.9e TEST\nДЕСЬ НЕ ТАМ\n\nтекстова виживалка з комедією, крінжем і хорором\n\nПродовжити\nНазад\nЩе нема жодного сейву.",
+        "cards": 0
+      },
+      "late": {
+        "idb": "object",
+        "restored": true
+      }
+    }
+  },
+  "battles": [
+    {
+      "config": {
+        "name": "energy1",
+        "health": 100,
+        "energy": 1,
+        "random": 0.5
+      },
+      "text": "СУТИЧКА\nХІД 1\nТРУПОСМЕРД\nНЕВІДОМО\nВОНО ГОТУЄТЬСЯ\nВоно заносить руки над головою.\nВИ\nРІВ. 1\n❤️ 100%\n⚡ 1%\nЄВПАПІЙ\n❤️ 100%\nРІВ. 1\n50/50\nЗАЄБАВСЯ\nдії коштують більше бадьорості · спритність -1\nКИДАТИ НІЧИМ\nТРУПОСМЕРД КИДАЄТЬСЯ НА ВАС\nВІДСКОЧИТИ\nПРИКРИТИСЬ\nКИНУТИ ПРЕДМЕТ\nЄВПАПІЙ, ВІДВОЛІЧИ ЙОГО",
+      "buttons": [
+        {
+          "action": "dodge",
+          "disabled": true
+        },
+        {
+          "action": "guard",
+          "disabled": true
+        },
+        {
+          "action": "items",
+          "disabled": true
+        },
+        {
+          "action": "pigeon",
+          "disabled": true
+        }
+      ],
+      "forcedDamageForLoss": true
+    },
+    {
+      "config": {
+        "name": "health0",
+        "health": 0,
+        "energy": 65,
+        "random": 0.5
+      },
+      "text": "СУТИЧКА\nХІД 1\nТРУПОСМЕРД\nНЕВІДОМО\nВОНО ГОТУЄТЬСЯ\nВоно заносить руки над головою.\nВИ\nРІВ. 1\n❤️ 100%\n⚡ 65%\nЄВПАПІЙ\n❤️ 100%\nРІВ. 1\n50/50\nСТАНІВ НЕМА\nКИДАТИ НІЧИМ\nТРУПОСМЕРД КИДАЄТЬСЯ НА ВАС\nВІДСКОЧИТИ\nПРИКРИТИСЬ\nКИНУТИ ПРЕДМЕТ\nЄВПАПІЙ, ВІДВОЛІЧИ ЙОГО",
+      "buttons": [
+        {
+          "action": "dodge",
+          "disabled": false
+        },
+        {
+          "action": "guard",
+          "disabled": false
+        },
+        {
+          "action": "items",
+          "disabled": true
+        },
+        {
+          "action": "pigeon",
+          "disabled": false
+        }
+      ],
+      "forcedDamageForLoss": true
+    },
+    {
+      "config": {
+        "name": "loss",
+        "health": 1,
+        "energy": 65,
+        "random": 0.5
+      },
+      "text": "СУТИЧКА\nХІД 1\nТРУПОСМЕРД\nНЕВІДОМО\nВОНО ГОТУЄТЬСЯ\nВоно заносить руки над головою.\nВИ\nРІВ. 1\n❤️ 1%\n⚡ 65%\nЄВПАПІЙ\n❤️ 100%\nРІВ. 1\n50/50\nСТАНІВ НЕМА\nКИДАТИ НІЧИМ\nТРУПОСМЕРД КИДАЄТЬСЯ НА ВАС\nВІДСКОЧИТИ\nПРИКРИТИСЬ\nКИНУТИ ПРЕДМЕТ\nЄВПАПІЙ, ВІДВОЛІЧИ ЙОГО",
+      "buttons": [
+        {
+          "action": "dodge",
+          "disabled": false
+        },
+        {
+          "action": "guard",
+          "disabled": false
+        },
+        {
+          "action": "items",
+          "disabled": true
+        },
+        {
+          "action": "pigeon",
+          "disabled": false
+        }
+      ],
+      "outcome": "lose",
+      "finalHealth": 0,
+      "rewardXP": 10,
+      "forcedDamageForLoss": true
+    }
+  ],
+  "limitations": [
+    "Local Chromium, not actual iPhone Safari or deployed GitHub Pages.",
+    "One complete ordinary UI run; sampled graph is not exhaustive path verification.",
+    "Loss probe uses increased enemy damage and deterministic random, not ordinary balance.",
+    "Synthetic legacy saves, not user save data."
+  ]
+}

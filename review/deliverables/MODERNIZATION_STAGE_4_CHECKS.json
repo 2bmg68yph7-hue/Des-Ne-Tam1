@@ -1,0 +1,327 @@
+[
+  {
+    "suite": "foundations",
+    "results": [
+      {
+        "name": "chapter 1 survives normalization and action",
+        "passed": true
+      },
+      {
+        "name": "chapter 2 survives normalization and action",
+        "passed": true
+      },
+      {
+        "name": "chapter 3 survives normalization and action",
+        "passed": true
+      },
+      {
+        "name": "chapter 4 survives normalization and action",
+        "passed": true
+      },
+      {
+        "name": "chapter 5 survives normalization and action",
+        "passed": true
+      },
+      {
+        "name": "chapter 6 survives normalization and action",
+        "passed": true
+      },
+      {
+        "name": "chapter 7 survives normalization and action",
+        "passed": true
+      },
+      {
+        "name": "full bag rejects whole addition without changing stacks",
+        "passed": true
+      },
+      {
+        "name": "missing items reject whole removal",
+        "passed": true
+      },
+      {
+        "name": "failed resource payment cannot earn a reward or consume time",
+        "passed": true
+      },
+      {
+        "name": "valid earned clothing survives load",
+        "passed": true
+      },
+      {
+        "name": "expired timer disappears even after scripted clock jump",
+        "passed": true
+      },
+      {
+        "name": "a dead hero cannot consume medicine to resurrect",
+        "passed": true
+      },
+      {
+        "name": "chapter 7 manual save embeds chapter 7 checkpoint",
+        "passed": true
+      },
+      {
+        "name": "IndexedDB-only autosave remains accessible through Continue",
+        "passed": true
+      },
+      {
+        "name": "test supplies are given once and stay consumed",
+        "passed": true
+      },
+      {
+        "name": "legacy save is backed up intact before a new-version write",
+        "passed": true
+      },
+      {
+        "name": "migration is idempotent and does not replay old damage or costs",
+        "passed": true
+      },
+      {
+        "name": "export and import preserve autosaves, manuals, checkpoints and author fields",
+        "passed": true
+      },
+      {
+        "name": "dead hero cannot start a battle",
+        "passed": true
+      },
+      {
+        "name": "zero energy has a playable costly fallback and no absent pigeon",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "suite": "world",
+    "results": [
+      {
+        "name": "day and night expose different real actions",
+        "passed": true
+      },
+      {
+        "name": "attention changes search duration and hidden find",
+        "passed": true
+      },
+      {
+        "name": "strength changes work cost",
+        "passed": true
+      },
+      {
+        "name": "charisma and past trust both change help; a poor build still has an alternative",
+        "passed": true
+      },
+      {
+        "name": "agility prevents a night-search injury",
+        "passed": true
+      },
+      {
+        "name": "pofigism prevents fear from night exploration",
+        "passed": true
+      },
+      {
+        "name": "ahui reduces the cost of checking fog without ending the story",
+        "passed": true
+      },
+      {
+        "name": "once-only stock and XP survive reload",
+        "passed": true
+      },
+      {
+        "name": "time advances only on actions; browsing costs nothing",
+        "passed": true
+      },
+      {
+        "name": "full-bag find remains available after making room",
+        "passed": true
+      },
+      {
+        "name": "water, food and fatigue produce actual statuses and recover",
+        "passed": true
+      },
+      {
+        "name": "washing removes skunk and dirty-clothing status",
+        "passed": true
+      },
+      {
+        "name": "danger blocks long rest and scavenging without hiding combat alternatives",
+        "passed": true
+      },
+      {
+        "name": "chapter 6 uses separate supplies and clothing, chapter 7 restores Stepan",
+        "passed": true
+      },
+      {
+        "name": "Place action through actual menu updates live state, save and journal",
+        "passed": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "suite": "preparation",
+    "results": [
+      {
+        "name": "first chapter earns a spendable level; saving and re-entering cannot farm it",
+        "passed": true
+      },
+      {
+        "name": "a penniless empty-bag character can obtain food; charisma changes the price",
+        "passed": true
+      },
+      {
+        "name": "attention changes the time needed for equipment and path checks",
+        "passed": true
+      },
+      {
+        "name": "preparation routes preserve the canonical destinations",
+        "passed": true
+      },
+      {
+        "name": "canonical potion use consumes a dose exactly once",
+        "passed": true
+      },
+      {
+        "name": "a full tool bag has a reversible way to make room and recover a find",
+        "passed": true
+      },
+      {
+        "name": "bird progression and recovery affect his own actor profile",
+        "passed": true
+      },
+      {
+        "name": "actual UI spends a point, packs water and enters chapter 2",
+        "passed": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "suite": "combat",
+    "results": [
+      {
+        "name": "same encounter, seed and choices: preparation changes the health cost and survives in memory",
+        "passed": true
+      },
+      {
+        "name": "earlier trust changes the cost of pigeon support",
+        "passed": true
+      },
+      {
+        "name": "low energy does not hide an affordable prayer or available food",
+        "passed": true
+      },
+      {
+        "name": "reloading a scripted knife strike preserves knockout, damage and knife consumption",
+        "passed": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "suite": "survival",
+    "results": [
+      {
+        "name": "overnight with no money or items is available and costs real needs, not a fixed refill",
+        "passed": true
+      },
+      {
+        "name": "four and eight hours of sleep produce different readiness at the same narrative time",
+        "passed": true
+      },
+      {
+        "name": "no payment means no overnight rewards or time; a completed night cannot repeat",
+        "passed": true
+      },
+      {
+        "name": "weather and clothing affect outdoor costs; a sheltered night is protected from outdoor wind",
+        "passed": true
+      },
+      {
+        "name": "fall is always canonical but skill or preparation changes injury; re-entry cannot repeat damage",
+        "passed": true
+      },
+      {
+        "name": "three earlier relationships or memories change a later cost",
+        "passed": true
+      },
+      {
+        "name": "Darina help uses earlier attitude and remains hidden before the hood reveal",
+        "passed": true
+      },
+      {
+        "name": "pigeon earns and spends his own development; Stepan inventory and progress return intact",
+        "passed": true
+      },
+      {
+        "name": "exploration and repeated jobs share a finite chapter XP budget",
+        "passed": true
+      },
+      {
+        "name": "an unfinished deal has both paid and penniless resolution",
+        "passed": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "suite": "journey",
+    "passed": true,
+    "chapters": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "steps": 124,
+    "interludes": [
+      "ch1_prepare",
+      "ch2_prepare",
+      "ch3_prepare",
+      "ch4_prepare",
+      "ch5_prepare",
+      "ch6_prepare"
+    ],
+    "final": {
+      "scene": "ch7_shed_truth100",
+      "health": 74,
+      "needs": {
+        "satiety": 69.044,
+        "water": 51.646,
+        "energy": 84.44
+      },
+      "progression": {
+        "level": 4,
+        "xp": 80,
+        "xpToNext": 100,
+        "points": 3
+      }
+    },
+    "views": [
+      {
+        "width": 320,
+        "scrollWidth": 320,
+        "ground": "50% 100%, 50% 100%",
+        "loaded": true
+      },
+      {
+        "width": 390,
+        "scrollWidth": 390,
+        "ground": "50% 100%, 50% 100%",
+        "loaded": true
+      },
+      {
+        "width": 430,
+        "scrollWidth": 430,
+        "ground": "50% 100%, 50% 100%",
+        "loaded": true
+      },
+      {
+        "width": 844,
+        "scrollWidth": 844,
+        "ground": "50% 100%, 50% 100%",
+        "loaded": true
+      }
+    ],
+    "errors": []
+  }
+]

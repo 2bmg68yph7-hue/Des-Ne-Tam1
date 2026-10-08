@@ -1,0 +1,335 @@
+{
+  "errors": [],
+  "screens": [
+    {
+      "layout": "story",
+      "screen": "story",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "inventory",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "hero",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "stats",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "states",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "needs",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "people",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "location",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "journal",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "settings",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "companion",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "save",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "story",
+      "screen": "story",
+      "width": 320,
+      "height": 568,
+      "overflow": false
+    },
+    {
+      "layout": "story",
+      "screen": "story",
+      "width": 430,
+      "height": 932,
+      "overflow": false
+    },
+    {
+      "layout": "actions",
+      "screen": "story",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "inventory",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "hero",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "stats",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "states",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "needs",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "people",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "location",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "journal",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "settings",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "companion",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "save",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "actions",
+      "screen": "story",
+      "width": 320,
+      "height": 568,
+      "overflow": false
+    },
+    {
+      "layout": "actions",
+      "screen": "story",
+      "width": 430,
+      "height": 932,
+      "overflow": false
+    },
+    {
+      "layout": "hybrid",
+      "screen": "story",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "inventory",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "hero",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "stats",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "states",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "needs",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "people",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "location",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "journal",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "settings",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "companion",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "save",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "layout": "hybrid",
+      "screen": "story",
+      "width": 320,
+      "height": 568,
+      "overflow": false
+    },
+    {
+      "layout": "hybrid",
+      "screen": "story",
+      "width": 430,
+      "height": 932,
+      "overflow": false
+    }
+  ]
+}

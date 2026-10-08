@@ -1,0 +1,184 @@
+{
+  "errors": [],
+  "views": [
+    {
+      "width": 288,
+      "scroll": 288,
+      "product": [
+        {
+          "client": 286,
+          "scroll": 286,
+          "visible": true
+        },
+        {
+          "client": 0,
+          "scroll": 0,
+          "visible": false
+        }
+      ]
+    },
+    {
+      "width": 358,
+      "scroll": 358,
+      "product": [
+        {
+          "client": 356,
+          "scroll": 356,
+          "visible": true
+        },
+        {
+          "client": 0,
+          "scroll": 0,
+          "visible": false
+        }
+      ]
+    },
+    {
+      "width": 398,
+      "scroll": 398,
+      "product": [
+        {
+          "client": 396,
+          "scroll": 396,
+          "visible": true
+        },
+        {
+          "client": 0,
+          "scroll": 0,
+          "visible": false
+        }
+      ]
+    },
+    {
+      "width": 812,
+      "scroll": 812,
+      "product": [
+        {
+          "client": 410,
+          "scroll": 410,
+          "visible": true
+        },
+        {
+          "client": 0,
+          "scroll": 0,
+          "visible": false
+        }
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "key": "menu",
+      "title": "Меню",
+      "width": {
+        "client": 396,
+        "scroll": 396
+      }
+    },
+    {
+      "key": "people",
+      "title": "Персонажі й стосунки",
+      "width": {
+        "client": 396,
+        "scroll": 396
+      }
+    },
+    {
+      "key": "companion",
+      "title": "Євпапій",
+      "width": {
+        "client": 396,
+        "scroll": 396
+      }
+    },
+    {
+      "key": "journal",
+      "title": "Журнал",
+      "width": {
+        "client": 396,
+        "scroll": 396
+      }
+    },
+    {
+      "key": "map",
+      "title": "Карта",
+      "width": {
+        "client": 396,
+        "scroll": 396
+      }
+    },
+    {
+      "key": "shop",
+      "title": "Допомога",
+      "width": {
+        "client": 396,
+        "scroll": 396
+      }
+    },
+    {
+      "key": "save",
+      "title": "Збереження",
+      "width": {
+        "client": 396,
+        "scroll": 396
+      }
+    },
+    {
+      "key": "settings",
+      "title": "Налаштування",
+      "width": {
+        "client": 396,
+        "scroll": 396
+      }
+    },
+    {
+      "key": "needs",
+      "title": "Стан Степана",
+      "width": {
+        "client": 396,
+        "scroll": 396
+      }
+    },
+    {
+      "key": "rest",
+      "title": "Відпочинок",
+      "width": {
+        "client": 396,
+        "scroll": 396
+      }
+    },
+    {
+      "key": "battle",
+      "title": "Сутичка",
+      "width": {
+        "client": 396,
+        "scroll": 396
+      }
+    }
+  ],
+  "checks": {
+    "initialImages": [
+      {
+        "loaded": true,
+        "alt": "Степан"
+      },
+      {
+        "loaded": true,
+        "alt": "Євпапій"
+      }
+    ],
+    "charisma": "Степан\n← Назад\nРозвиток\nСтан\nОдяг\n\nРівень 2 · 35/100 XP\n\nОчки витрачено · розвиток збережено\nСила 2\nЗахист, захват і навантаження\nРозвинути +1\nУважність 2\nОгляд і оцінка небезпеки\nРозвинути +1\nСпритність 2\nУхилення й відступ\nРозвинути +1\nХаризма 3\nДомовленість і допомога\nРозвинути +1\nПохуїзм 2\nДія під страхом і тиском\nРозвинути +1\nАхуй 1\nДоречний нетиповий метод\nРозвинути +1",
+    "helpCost": "Попросити води у Галі\nДомовитися · 5 хв",
+    "searchOnce": true,
+    "helpOnce": true,
+    "useWater": "Вода +30 · предмет −1",
+    "saveRestore": "Збереження відновлено",
+    "battle": "Результат сутички\n← Назад\nПережили напад · противника не вбито\n\nЗдоров’я 62% · енергія 31%\n\nЄвпапій: 42/50 HP\n\nПовернутися до історії\nНаслідки показані окремо",
+    "attention": "Оглянути дозволені припаси\nРазовий пошук · 10 хв · можливе поповнення",
+    "compactNarrow": {
+      "client": 286,
+      "scroll": 286
+    }
+  },
+  "scope": "UI concept only; the game implementation remains unchanged"
+}

@@ -1,0 +1,307 @@
+[
+  {
+    "path": "AUTHOR_MODERNIZATION_TZ.md",
+    "bytes": 9588,
+    "sha256": "65523c4560dd3d54317713b10b8a3f09319dd6ac109c5e537bb23ed7aa55c2b6"
+  },
+  {
+    "path": "AUTHOR_SURVIVAL_EXTENSION_TZ.md",
+    "bytes": 13694,
+    "sha256": "7e4e890b4c191af9273d6e1069a1a7a768b9953082b05494df8643b7aaadd957"
+  },
+  {
+    "path": "MOBILE_UI_PROTOTYPE.html",
+    "bytes": 949538,
+    "sha256": "42de6808a12cccfafc7dac51f38499637d2c660231b13f965f41a3877b019acf"
+  },
+  {
+    "path": "WORK_CHECKPOINT.md",
+    "bytes": 9038,
+    "sha256": "446833064233701260ac6f7ce93f802e9a03c4742fe932f43bfaa5d5ab77ab84"
+  },
+  {
+    "path": "deliverables/AUDIT_DES_NE_TAM_2026-10-08.md",
+    "bytes": 53877,
+    "sha256": "bbf9b079e936b436ab5c415c116a4e3d3f5240b9f204a040744227d73cd92c21"
+  },
+  {
+    "path": "deliverables/AUDIT_EVIDENCE_2026-10-08.json",
+    "bytes": 12457,
+    "sha256": "b27eb7b9473ddd8930c253a69820c33a8d748c8d0930f1e73ca49f5c55057836"
+  },
+  {
+    "path": "deliverables/AUDIT_MOBILE_CH7_390x844.png",
+    "bytes": 110200,
+    "sha256": "a3214d38d66a730036793c60979d38b78472d85357ea4ea653e18db029391464"
+  },
+  {
+    "path": "deliverables/MODERNIZATION_DES_NE_TAM_PLAN.md",
+    "bytes": 68118,
+    "sha256": "b2901bb65711a7cc3d005a678235b99c9176d1d936a91c17ec678dc2b965bf01"
+  },
+  {
+    "path": "deliverables/MODERNIZATION_STAGE_1.md",
+    "bytes": 5399,
+    "sha256": "fb87cb21e3d2133d41a132c7c893ad9962972fd5af6978c6e342e3d4d1469cb2"
+  },
+  {
+    "path": "deliverables/MODERNIZATION_STAGE_2.md",
+    "bytes": 3977,
+    "sha256": "944b4596ccf051f3a7c83d1817cf1d2e8ee1a186c62b39132399f86413fd071b"
+  },
+  {
+    "path": "deliverables/MODERNIZATION_STAGE_3_JOURNEY.json",
+    "bytes": 1010,
+    "sha256": "94c830b15960d14adc80746eaef8144615078ea61622bf2fc8d38375914e5d20"
+  },
+  {
+    "path": "deliverables/MODERNIZATION_STAGE_3.md",
+    "bytes": 6357,
+    "sha256": "e7b74dacdb1a761f5bc1d9c083860d48d46e536b7dc947bfe8fc65ad84ba9aa6"
+  },
+  {
+    "path": "deliverables/MODERNIZATION_STAGE_4_CHECKS.json",
+    "bytes": 8720,
+    "sha256": "7c5eae1eccfa20a392b13270b4f11d0442c5cfb454a2b1b890d35bbe0150bc63"
+  },
+  {
+    "path": "deliverables/MODERNIZATION_STAGE_4.md",
+    "bytes": 6484,
+    "sha256": "ed0ecddc9fc10fa5896fc428579bd8349d6cf5f4d0a2dfdeaf754ffda53845df"
+  },
+  {
+    "path": "deliverables/MODERNIZATION_UI_CHECKS.json",
+    "bytes": 4460,
+    "sha256": "6480f3cb2e59f979c5119125f08490fb9040ec430aeb591374cee0b0a0e50096"
+  },
+  {
+    "path": "deliverables/SURVIVAL_RPG_EXTENSION_PLAN.md",
+    "bytes": 62259,
+    "sha256": "e3c50d635ff8c6cb0cc9fd5b19c54bda2aa5933f9befd3bfd32a00218221e4cf"
+  },
+  {
+    "path": "deliverables/UI_REVIEW.html",
+    "bytes": 2624,
+    "sha256": "9ef5181cb638e3e23a44a0f96cadd9bec08d7177e118621634622a5cc7c0c72b"
+  },
+  {
+    "path": "deliverables/WORK_CHECKPOINT.md",
+    "bytes": 9038,
+    "sha256": "446833064233701260ac6f7ce93f802e9a03c4742fe932f43bfaa5d5ab77ab84"
+  },
+  {
+    "path": "deliverables/ui-review/actions-companion-390x844.png",
+    "bytes": 27737,
+    "sha256": "a4f088d51221c4a67dbb9d8b17981591250ca4d4141c16b29518199b7378aba9"
+  },
+  {
+    "path": "deliverables/ui-review/actions-hero-390x844.png",
+    "bytes": 50767,
+    "sha256": "559c79163a33a953ab6d61b3fc9502d2dc911877dae782c0429299d1d462a36f"
+  },
+  {
+    "path": "deliverables/ui-review/actions-inventory-390x844.png",
+    "bytes": 34570,
+    "sha256": "3718201336924c2031d95869e7ad743f34b4f804a9c46d34d705dd3ff5d9af52"
+  },
+  {
+    "path": "deliverables/ui-review/actions-journal-390x844.png",
+    "bytes": 31171,
+    "sha256": "e6aa66f2356dc2d9f2c1b207cd971411d0e6151b44b199dda0ce772badf49309"
+  },
+  {
+    "path": "deliverables/ui-review/actions-location-390x844.png",
+    "bytes": 35232,
+    "sha256": "44eabab2d7b9460a8945e427849d98bd809cca28171e5b03c75885ae932fa4f0"
+  },
+  {
+    "path": "deliverables/ui-review/actions-needs-390x844.png",
+    "bytes": 30310,
+    "sha256": "cc39e217cda50408116f2873cb09f07ba7b1ab4d4e904bd0eb49035b8ce95874"
+  },
+  {
+    "path": "deliverables/ui-review/actions-people-390x844.png",
+    "bytes": 26637,
+    "sha256": "d5c1bc64c06b97680ec07c7e9c145e947721c45f07b764856f2c01ba3ed28445"
+  },
+  {
+    "path": "deliverables/ui-review/actions-save-390x844.png",
+    "bytes": 30553,
+    "sha256": "63b7c86cc8f710a9ce9ad69fbbb20eea16445048d01fc165cb43b05fd5254dd5"
+  },
+  {
+    "path": "deliverables/ui-review/actions-settings-390x844.png",
+    "bytes": 30284,
+    "sha256": "3406d60a23d7be17e589d593bbaad8394939ceb38209b9506a078e80fbfc6c36"
+  },
+  {
+    "path": "deliverables/ui-review/actions-states-390x844.png",
+    "bytes": 37010,
+    "sha256": "c7e6a847c1698549ed5abbc1ce3fa2c263cfa392be3369f89cf202ea8bfac89e"
+  },
+  {
+    "path": "deliverables/ui-review/actions-stats-390x844.png",
+    "bytes": 39928,
+    "sha256": "f8ca6bf3b932f62852f39dca8a934a9cb0ee595b20719762f928f4877f233b9d"
+  },
+  {
+    "path": "deliverables/ui-review/actions-story-320x568.png",
+    "bytes": 51165,
+    "sha256": "5832fd4391a0d9a921dcfcce5f243ba744bfdf352484b0643f8d185ef683632b"
+  },
+  {
+    "path": "deliverables/ui-review/actions-story-390x844.png",
+    "bytes": 63855,
+    "sha256": "42d64dcead87463cea28cc852026da4a03f744f35669165e97c923ddf269e459"
+  },
+  {
+    "path": "deliverables/ui-review/actions-story-430x932.png",
+    "bytes": 64653,
+    "sha256": "eee843ade39d4c8a62afb067d5886d4b99b990f36c00884e20ea8cb44d8668d5"
+  },
+  {
+    "path": "deliverables/ui-review/checks.json",
+    "bytes": 6295,
+    "sha256": "11145fe6bee1165063a07a3857a0d90fb72605faaeded0a0b2b1dc45dd69f20b"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-companion-390x844.png",
+    "bytes": 29651,
+    "sha256": "b62ab9cde3f33f92351e8230aeca4f149ea5f37edfb008bceb27e5bfb45cb25e"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-hero-390x844.png",
+    "bytes": 52597,
+    "sha256": "20a09d26e1f30c6e36dace0aabdca36c21580a1baed71b91dfdcbc09d2666bee"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-inventory-390x844.png",
+    "bytes": 36461,
+    "sha256": "b914605416eb06f5738fdbee17574c35f8b769c56adc5e96fa3ecc7ff275cedd"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-journal-390x844.png",
+    "bytes": 33099,
+    "sha256": "6bcfc3dfb6d5326cf4d43b3bc45003774f570c22fb6cbbdea8359081a6878926"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-location-390x844.png",
+    "bytes": 37096,
+    "sha256": "ccc2ff201e613939490f85f8f9963530dd6f429e42ba822b65dd26cb85a574ec"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-needs-390x844.png",
+    "bytes": 32219,
+    "sha256": "e8fa92c5743ec29bd5c7d425f41950e86396ab6274448ee86e4f829965c678b5"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-people-390x844.png",
+    "bytes": 28549,
+    "sha256": "21a8f77b94cba7d3783685316915c2c4c701897a0640934c1a61caff5812f7fb"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-save-390x844.png",
+    "bytes": 32452,
+    "sha256": "c7064b06237dd0912c91329137dcf8701c0df2d5b730bf1ddaa5981db12c329e"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-settings-390x844.png",
+    "bytes": 32177,
+    "sha256": "21f58cfd4a20bcdbf1a9c45602c5be1598648f69fe896dfc5aa995e76b6cbdcd"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-states-390x844.png",
+    "bytes": 37283,
+    "sha256": "04a8538d734fefdf5f5f5fdfb9014e17723fdf37771d3d308ed30867f700e163"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-stats-390x844.png",
+    "bytes": 40991,
+    "sha256": "55accae16aea6c5c38c0fef0a0e623b1e0707f2e454467236fbd868b22a1e519"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-story-320x568.png",
+    "bytes": 110027,
+    "sha256": "987e578d4901ef809698b23e7f7ed17d4907433108e54f577b36f7dab955fa65"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-story-390x844.png",
+    "bytes": 140595,
+    "sha256": "74f357f36fb215cb803f76891c7c1eb70656ed598d569e4923f6f741adffcd48"
+  },
+  {
+    "path": "deliverables/ui-review/hybrid-story-430x932.png",
+    "bytes": 157183,
+    "sha256": "4d262562e2072b224a056d3c8ac3984d1e9383468e32dcfc339bf8111b65e33b"
+  },
+  {
+    "path": "deliverables/ui-review/story-companion-390x844.png",
+    "bytes": 27737,
+    "sha256": "a4f088d51221c4a67dbb9d8b17981591250ca4d4141c16b29518199b7378aba9"
+  },
+  {
+    "path": "deliverables/ui-review/story-hero-390x844.png",
+    "bytes": 50767,
+    "sha256": "559c79163a33a953ab6d61b3fc9502d2dc911877dae782c0429299d1d462a36f"
+  },
+  {
+    "path": "deliverables/ui-review/story-inventory-390x844.png",
+    "bytes": 34570,
+    "sha256": "3718201336924c2031d95869e7ad743f34b4f804a9c46d34d705dd3ff5d9af52"
+  },
+  {
+    "path": "deliverables/ui-review/story-journal-390x844.png",
+    "bytes": 31171,
+    "sha256": "e6aa66f2356dc2d9f2c1b207cd971411d0e6151b44b199dda0ce772badf49309"
+  },
+  {
+    "path": "deliverables/ui-review/story-location-390x844.png",
+    "bytes": 35232,
+    "sha256": "44eabab2d7b9460a8945e427849d98bd809cca28171e5b03c75885ae932fa4f0"
+  },
+  {
+    "path": "deliverables/ui-review/story-needs-390x844.png",
+    "bytes": 30310,
+    "sha256": "cc39e217cda50408116f2873cb09f07ba7b1ab4d4e904bd0eb49035b8ce95874"
+  },
+  {
+    "path": "deliverables/ui-review/story-people-390x844.png",
+    "bytes": 26637,
+    "sha256": "d5c1bc64c06b97680ec07c7e9c145e947721c45f07b764856f2c01ba3ed28445"
+  },
+  {
+    "path": "deliverables/ui-review/story-save-390x844.png",
+    "bytes": 30553,
+    "sha256": "63b7c86cc8f710a9ce9ad69fbbb20eea16445048d01fc165cb43b05fd5254dd5"
+  },
+  {
+    "path": "deliverables/ui-review/story-settings-390x844.png",
+    "bytes": 30284,
+    "sha256": "3406d60a23d7be17e589d593bbaad8394939ceb38209b9506a078e80fbfc6c36"
+  },
+  {
+    "path": "deliverables/ui-review/story-states-390x844.png",
+    "bytes": 37010,
+    "sha256": "c7e6a847c1698549ed5abbc1ce3fa2c263cfa392be3369f89cf202ea8bfac89e"
+  },
+  {
+    "path": "deliverables/ui-review/story-stats-390x844.png",
+    "bytes": 39928,
+    "sha256": "f8ca6bf3b932f62852f39dca8a934a9cb0ee595b20719762f928f4877f233b9d"
+  },
+  {
+    "path": "deliverables/ui-review/story-story-320x568.png",
+    "bytes": 126661,
+    "sha256": "badc2efc73544ad2631e0f47f302fe45faa4021de474c85460831feba8f6fd70"
+  },
+  {
+    "path": "deliverables/ui-review/story-story-390x844.png",
+    "bytes": 166936,
+    "sha256": "8b385cb485aec448e2d719cc2edbb11f8ba7cbcf2864c0b84ed97351e4c4b509"
+  },
+  {
+    "path": "deliverables/ui-review/story-story-430x932.png",
+    "bytes": 180280,
+    "sha256": "6a0bed2ba58c257fde407a3a3ea860350e9ef03774fa249c2334dcddd62615b2"
+  }
+]

@@ -1,0 +1,60 @@
+{
+  "suite": "journey",
+  "passed": true,
+  "chapters": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "steps": 120,
+  "interludes": [
+    "ch1_prepare",
+    "ch2_prepare"
+  ],
+  "final": {
+    "scene": "ch7_shed_truth100",
+    "health": 92,
+    "needs": {
+      "satiety": 99.75,
+      "water": 99.4,
+      "energy": 78
+    },
+    "progression": {
+      "level": 3,
+      "xp": 0,
+      "xpToNext": 100,
+      "points": 2
+    }
+  },
+  "views": [
+    {
+      "width": 320,
+      "scrollWidth": 320,
+      "ground": "50% 100%, 50% 100%",
+      "loaded": true
+    },
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "ground": "50% 100%, 50% 100%",
+      "loaded": true
+    },
+    {
+      "width": 430,
+      "scrollWidth": 430,
+      "ground": "50% 100%, 50% 100%",
+      "loaded": true
+    },
+    {
+      "width": 844,
+      "scrollWidth": 844,
+      "ground": "50% 100%, 50% 100%",
+      "loaded": true
+    }
+  ],
+  "errors": []
+}
