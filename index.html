@@ -78,22 +78,7 @@
   }
 }
 </script>
-<script id="startup095n">
-(()=>{
-  const ids=['newGameBtn','continueBtn','chaptersBtn','savesBtn'];
-  const native=window.indexedDB;
-  let restored=true;
-  const forceLocal=()=>{
-    if(!restored)return;restored=false;
-    try{Object.defineProperty(window,'indexedDB',{value:undefined,configurable:true,writable:true})}catch(e){try{window.indexedDB=undefined}catch(_){}}
-    setTimeout(()=>{
-      try{Object.defineProperty(window,'indexedDB',{value:native,configurable:true,writable:true})}catch(e){try{window.indexedDB=native}catch(_){}}
-      restored=true;
-    },1800);
-  };
-  window.addEventListener('DOMContentLoaded',()=>{for(const id of ids)document.getElementById(id)?.addEventListener('click',forceLocal,true)},{once:true});
-})();
-</script>
+
 <script type="module" src="./main.js?v=095"></script>
 <script type="module" src="./ui-v085.js?v=095"></script>
 <script type="module" src="./patch-v095.js?v=095"></script>

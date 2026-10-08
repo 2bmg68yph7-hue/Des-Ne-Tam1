@@ -1,6 +1,7 @@
 // v0.9.7 engine wrapper – chapter 4 + status/save fixes.
 export * from './engine.js?core=096b';
 import * as core from './engine.js?core=096b';
+import {chapterOf} from './chapters.js';
 import {STAT_KEYS} from './config.js?v=096b';
 import {STATUS_DEFS,CLOTHES,ITEM_DEFS} from './data.js?v=096b';
 
@@ -29,16 +30,8 @@ function setActive(s,id,on,events=[]){
   else if(!on&&had){s.activeStatuses=s.activeStatuses.filter(x=>x!==id);delete s.statusTimers[id];events.push({type:'statusRemoved',id,visible:false})}
   return events;
 }
-function chapterFromState(raw){
-  const scene=String(raw?.story?.sceneId||raw?.scene||'');
-  if(scene.startsWith('ch4_')||Number(raw?.story?.chapter||raw?.chapter||0)>=4)return 4;
-  return Number(raw?.story?.chapter||raw?.chapter||1);
-}
-function forceChapter(s,raw){
-  if(chapterFromState(raw)>=4){s.chapter=4;s.story={...(s.story||{}),chapter:4};}
-  return s;
-}
-function ensureRelationship(s,id,name,values={}){
+function forceChapter(s,raw){s.chapter=chapterOf(s);s.story={...(s.story||{}),chapter:s.chapter};return s;}
+ function ensureRelationship(s,id,name,values={}){
   s.relationships=s.relationships||{};
   const old=s.relationships[id]||{};
   s.relationships[id]={name,known:Boolean(old.known),values:{...values,...(old.values||{})},discoveredParams:Array.isArray(old.discoveredParams)?old.discoveredParams:[]};
@@ -104,7 +97,8 @@ function ensureItem(s,id,qty){
   if(!ITEM_DEFS[id])return;const cur=(s.inventory||[]).find(x=>x.id===id);if(cur)cur.qty=Math.max(Number(cur.qty||0),qty);else s.inventory.push({id,qty});
 }
 function applyTestSetup(s){
-  if(!s.flags?.testMode)return;
+  if(!s.flags?.testMode||s.flags.testSetupApplied096)return;
+  s.flags.testSetupApplied096=true;
   let cfg={};try{cfg=JSON.parse(localStorage.getItem('dnt-test-v096')||'{}')}catch{}
   const ids=Array.isArray(cfg.statuses)?cfg.statuses:[];
   for(const id of ids){
@@ -167,7 +161,7 @@ export function normalizeState(raw){
 
 export function executeAction(state,action){
   const before=normalizeState(state),beforeActive=new Set(before.activeStatuses||[]),oldTimers={...(before.statusTimers||{})};
-  const r=core.executeAction(before,action);let s=cleanStatuses(forceChapter(r.state,before));let events=(r.events||[]).filter(e=>{
+  const r=core.executeAction(before,action);if(r.accepted===false)return r;let s=cleanStatuses(forceChapter(r.state,before));let events=(r.events||[]).filter(e=>{
     if(e?.type!=='statusAdded'&&e?.type!=='statusRemoved')return true;return ALLOWED_STATUSES.has(e.id);
   });
   for(const id of beforeActive){
@@ -185,10 +179,10 @@ export function executeAction(state,action){
   if(added('cowLicked')){if(!s.activeStatuses.includes('cowLicked'))s.activeStatuses.push('cowLicked');ensureDiscovered(s,'cowLicked');s.statusTimers.cowLicked=Number(s.clock?.totalMinutes||0)+60}
   snapshotStepan(before,s,action);
   events=reconcileTired(s,beforeActive.has('tired'),events);events=maybeHangover(s,events);syncItemKnowledge(s);syncKnownPeople(s);forceChapter(s,before);
-  return{state:cleanStatuses(s),events};
+  return{state:cleanStatuses(s),events,accepted:true};
 }
 export function useItem(state,id){
-  const d=ITEM_DEFS[id];if(!d||core.itemCount(state,id)<=0||!d.useEffects?.length)return{state,used:false,events:[]};
+  const d=ITEM_DEFS[id];if(state.health<=0||!d||core.itemCount(state,id)<=0||!d.useEffects?.length)return{state,used:false,events:[]};
   return{...executeAction(state,{id:`use_${id}`,effects:d.useEffects,hiddenEffects:[{type:'itemRemove',id,qty:1}]}),used:true};
 }
 

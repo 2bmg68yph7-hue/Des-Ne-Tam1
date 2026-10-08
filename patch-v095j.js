@@ -23,6 +23,7 @@ function starterItems(){
   // Якщо тестово стартують одразу з 2/3 глави – не лишаємо гравця без сюжетних речей з першої.
   for(const scene of [CHAPTER2_SCENES.ch2_intro,CHAPTER3_SCENES.ch3_intro]){
     mergeEnter(scene,s=>{
+      if(!s.flags?.testMode)return [];
       const out=[];
       if(!count(s,'onion'))out.push({type:'itemAdd',id:'onion',qty:1});
       if(!count(s,'potion_unknown'))out.push({type:'itemAdd',id:'potion_unknown',qty:1});

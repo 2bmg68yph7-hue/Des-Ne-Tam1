@@ -1,5 +1,6 @@
 import {STAT_KEYS} from './config.js?v=096b';
 import {STATUS_DEFS,CLOTHES,ITEM_DEFS} from './data.js?v=096b';
+import {chapterOf} from './chapters.js';
 export const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 export const clone=x=>JSON.parse(JSON.stringify(x));
 
@@ -8,7 +9,7 @@ const DEFAULT_STAT_LEVELS={strength:2,attention:2,agility:2,charisma:2,pofigism:
 function defaultHeroProgression(){return {level:1,xp:0,xpToNext:100,points:0}}
 function defaultEvpProgression(){return {level:1,xp:0,xpToNext:100,points:0,attack:1,aggression:1,health:1}}
 export function createInitialState(runId=1){return {
- schemaVersion:11,runId,createdAt:Date.now(),updatedAt:Date.now(),lastAutosaveAt:null,
+ schemaVersion:12,runId,createdAt:Date.now(),updatedAt:Date.now(),lastAutosaveAt:null,
  chapter:1,scene:'intro',story:{chapter:1,sceneId:'intro',entered:[],finished:false},clock:{totalMinutes:400},
  health:100,needs:{satiety:75,water:42,energy:65},wetness:0,stats:defaultStats(),heroProgression:defaultHeroProgression(),
  activeStatuses:['hangover'],discoveredStatuses:['hangover'],statusTimers:{},unlocks:{yebatorium:false,sunsetContempt:false},
@@ -23,15 +24,14 @@ export function createInitialState(runId=1){return {
 }}
 export function normalizeState(raw){
  const legacySchema=Number(raw?.schemaVersion||0);
- const base=createInitialState(Number(raw?.runId||1)),s={...base,...clone(raw||{})};s.schemaVersion=11;
+ const base=createInitialState(Number(raw?.runId||1)),s={...base,...clone(raw||{})};s.schemaVersion=12;
  s.clock={...base.clock,...(s.clock||{})};s.needs={...base.needs,...(s.needs||{})};s.unlocks={...base.unlocks,...(s.unlocks||{})};s.flags={...base.flags,...(s.flags||{})};s.equipment={...base.equipment,...(s.equipment||{})};
  s.story={...base.story,...(s.story||{})};s.story.entered=Array.isArray(s.story.entered)?s.story.entered:[];s.scene=s.story.sceneId||s.scene||'intro';
  // Міграція з v0.7.1: фінальний екран першої глави тепер є стартом другої.
  if(s.scene==='chapter1Outro'||s.scene==='chapter1End')s.scene='ch2_intro';
  s.story.sceneId=s.scene;
  const sceneId=String(s.scene||'');
- const detectedChapter=sceneId.startsWith('ch3_')?3:sceneId.startsWith('ch2_')?2:Number(s.story.chapter||s.chapter||1);
- s.chapter=detectedChapter>=3?3:detectedChapter>=2?2:1;s.story.chapter=s.chapter;
+ s.chapter=chapterOf(s);s.story.chapter=s.chapter;
  const old=s.stats||{};s.stats=defaultStats();
  for(const k of STAT_KEYS){
    const v=old[k];
@@ -68,9 +68,9 @@ export function normalizeState(raw){
  const modernSet=['modern_shirt','modern_jacket','modern_pants','modern_boots'];
  const localSet=['local_shirt','local_vest','local_pants','boots'];
  const localMilestones=new Set(['galinaChanged','galinaMurderScene','galinaVictim','galinaCalm','galinaGarlic','galinaPotion','galinaHolyWater','chapter1Outro','chapter1End']);
- const reachedLocalClothes=/^ch[23]_/.test(String(s.scene||''))||localMilestones.has(s.scene)||(s.story.entered||[]).some(id=>localMilestones.has(id));
+ const reachedLocalClothes=Boolean(s.flags.localClothes)||s.chapter>=2||localMilestones.has(s.scene)||(s.story.entered||[]).some(id=>localMilestones.has(id));
  s.flags.localClothes=Boolean(reachedLocalClothes);
- const allowed=new Set(reachedLocalClothes?[...modernSet,...localSet]:modernSet);
+ const allowed=new Set(Object.keys(CLOTHES));
  const migrated=(Array.isArray(s.ownedClothes)?s.ownedClothes:base.ownedClothes).map(id=>aliases[id]||id).filter(id=>CLOTHES[id]&&allowed.has(id));
  s.ownedClothes=[...new Set(migrated)];
  for(const id of modernSet)if(CLOTHES[id]&&!s.ownedClothes.includes(id))s.ownedClothes.push(id);
@@ -78,7 +78,7 @@ export function normalizeState(raw){
  const defaults=reachedLocalClothes?{body:'local_shirt',outer:'local_vest',legs:'local_pants',feet:'boots'}:base.equipment;
  for(const slot of ['body','outer','legs','feet']){
    const mapped=aliases[s.equipment?.[slot]]||s.equipment?.[slot];
-   s.equipment[slot]=(mapped&&allowed.has(mapped)&&CLOTHES[mapped])?mapped:defaults[slot];
+   s.equipment[slot]=(mapped&&s.ownedClothes.includes(mapped)&&CLOTHES[mapped]?.slot===slot)?mapped:defaults[slot];
  }
  s.companions={...base.companions,...(s.companions||{})};
  const oldEvp=s.companions.evpapiy||{};s.companions.evpapiy={...base.companions.evpapiy,...oldEvp};
@@ -95,7 +95,7 @@ export function normalizeState(raw){
  s.relationships={...base.relationships,...(s.relationships||{})};
  for(const id of Object.keys(base.relationships))s.relationships[id]={...base.relationships[id],...(s.relationships[id]||{}),values:{...base.relationships[id].values,...(s.relationships[id]?.values||{})},discoveredParams:Array.isArray(s.relationships[id]?.discoveredParams)?s.relationships[id].discoveredParams:[]};
  s.memories={...base.memories,...(s.memories||{})};s.hazards={...base.hazards,...(s.hazards||{}),dynamic:{...(s.hazards?.dynamic||{})}};s.world={...base.world,...(s.world||{}),weather:{...base.world.weather,...(s.world?.weather||{})}};
- clearInvalidQuickSlots(s);return s
+ expireTimedStatuses(s);clearInvalidQuickSlots(s);return s
 }
 export function formatTime(total){const day=Math.floor(total/1440)+1,m=((total%1440)+1440)%1440,h=Math.floor(m/60);return{day,time:String(h).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}}
 export function equipmentTotals(state){const out={armor:0,warmth:0,heatBurden:0,rainProtection:0};for(const id of Object.values(state.equipment||{})){const d=CLOTHES[id];if(d)for(const k of Object.keys(out))out[k]+=Number(d[k]||0)}return out}
@@ -118,11 +118,11 @@ export function addStatus(state,id){const d=STATUS_DEFS[id];if(!d)return[];const
 export function removeStatus(state,id){const had=state.activeStatuses.includes(id);state.activeStatuses=state.activeStatuses.filter(x=>x!==id);delete state.statusTimers[id];return had?[{type:'statusRemoved',id,visible:false}]:[]}
 function expireTimedStatuses(state){const e=[];for(const [id,until] of Object.entries(state.statusTimers||{}))if(state.clock.totalMinutes>=Number(until))e.push(...removeStatus(state,id));return e}
 export function itemCount(state,id){return(state.inventory||[]).filter(x=>x.id===id).reduce((n,x)=>n+Number(x.qty||0),0)}
-export function removeItem(state,id,qty=1){let left=qty;for(let i=state.inventory.length-1;i>=0&&left>0;i--){const s=state.inventory[i];if(s.id!==id)continue;const take=Math.min(left,s.qty);s.qty-=take;left-=take;if(s.qty<=0)state.inventory.splice(i,1)}clearInvalidQuickSlots(state);return left===0}
-export function addItem(state,id,qty=1){const d=ITEM_DEFS[id];if(!d||qty<=0)return false;let left=qty;for(const s of state.inventory){if(s.id!==id||s.qty>=d.stack)continue;const add=Math.min(d.stack-s.qty,left);s.qty+=add;left-=add;if(left<=0)return true}while(left>0){if(state.inventory.length>=16)return false;const add=Math.min(d.stack,left);state.inventory.push({id,qty:add});left-=add}return true}
+export function removeItem(state,id,qty=1){if(!Number.isInteger(qty)||qty<=0||itemCount(state,id)<qty)return false;let left=qty;for(let i=state.inventory.length-1;i>=0&&left>0;i--){const s=state.inventory[i];if(s.id!==id)continue;const take=Math.min(left,s.qty);s.qty-=take;left-=take;if(s.qty<=0)state.inventory.splice(i,1)}clearInvalidQuickSlots(state);return true}
+export function addItem(state,id,qty=1){const d=ITEM_DEFS[id];if(!d||!Number.isInteger(qty)||qty<=0)return false;const stack=Math.max(1,Number(d.stack||1)),capacity=state.inventory.filter(x=>x.id===id).reduce((n,x)=>n+Math.max(0,stack-x.qty),0)+Math.max(0,16-state.inventory.length)*stack;if(capacity<qty)return false;let left=qty;for(const s of state.inventory){if(s.id!==id||s.qty>=stack)continue;const add=Math.min(stack-s.qty,left);s.qty+=add;left-=add;if(left<=0)return true}while(left>0){const add=Math.min(stack,left);state.inventory.push({id,qty:add});left-=add}return true}
 export function clearInvalidQuickSlots(state){state.quickSlots=(state.quickSlots||[null,null,null]).map(id=>id&&itemCount(state,id)>0?id:null)}
 export function assignQuickSlot(state,i,id){if(i<0||i>2)return false;if(id!==null&&itemCount(state,id)<=0)return false;state.quickSlots[i]=id;return true}
-export function useItem(state,id){const d=ITEM_DEFS[id];if(!d||itemCount(state,id)<=0||!d.useEffects?.length)return{state,used:false,events:[]};const r=executeAction(state,{id:`use_${id}`,effects:d.useEffects,hiddenEffects:[{type:'itemRemove',id,qty:1}]});return{...r,used:true}}
+export function useItem(state,id){const d=ITEM_DEFS[id];if(state.health<=0||!d||itemCount(state,id)<=0||!d.useEffects?.length)return{state,used:false,events:[]};const r=executeAction(state,{id:`use_${id}`,effects:d.useEffects,hiddenEffects:[{type:'itemRemove',id,qty:1}]});return{...r,used:r.accepted!==false}}
 export function thermal(state){const w=state.world.weather,eq=equipmentTotals(state);const outdoor=!['indoors','barn'].includes(state.world.environment);const coldRaw=Math.max(0,18-w.tempC+(w.wind||0)*1.4+(outdoor?state.wetness*.075:0)-eq.warmth*3);const heatRaw=Math.max(0,w.tempC-24+eq.heatBurden*2);const coldLevel=coldRaw>=12?3:coldRaw>=7?2:coldRaw>=3?1:0,heatLevel=heatRaw>=10?3:heatRaw>=6?2:heatRaw>=2?1:0;let feel='нормально';if(coldLevel===1)feel='прохолодно';if(coldLevel===2)feel='холодно';if(coldLevel===3)feel='дуже холодно';if(heatLevel===1)feel='тепло';if(heatLevel===2)feel='жарко';if(heatLevel===3)feel='пиздець як жарко';return{coldLevel,heatLevel,feel,eq}}
 
 export function threatInfo(state){
@@ -143,7 +143,19 @@ function timeCost(state,minutes,activity){if(minutes<=0)return{needs:{satiety:0,
   sleep_outdoors:{satiety:-.32,water:-.55,energy:1.15},
   dialogue:{satiety:0,water:0,energy:0}
 };const b=table[activity]||table.light,needs={satiety:b.satiety*u,water:b.water*u,energy:b.energy*u};if(t.heatLevel){needs.water-=t.heatLevel*.7*u}if(t.coldLevel){needs.energy-=t.coldLevel*.7*u;needs.satiety-=t.coldLevel*.35*u}for(const id of state.activeStatuses||[]){const d=STATUS_DEFS[id];for(const k of ['satiety','water','energy'])if(needs[k]<0&&d?.drainMultipliers?.[k])needs[k]*=Number(d.drainMultipliers[k])}const outdoors=!['indoors','barn'].includes(state.world.environment);const wetness=outdoors&&state.world.weather.rain>0?state.world.weather.rain*4*u*(1-clamp(eq.rainProtection*.16,0,.8)):(outdoors?-2*u:-8*u);let health=0;if(state.needs.water<=0)health-=1*u;if(state.needs.satiety<=0)health-=1*u;if(state.needs.energy<=0)health-=1*u;if(t.coldLevel===3)health-=.6*u;if(t.heatLevel===3)health-=.6*u;return{needs,wetness,health}}
-function applyEffect(s,e,events){if(e.type==='need'){const b=s.needs[e.key];s.needs[e.key]=clamp(b+Number(e.value||0),0,100);events.push({...e,actual:s.needs[e.key]-b,visible:e.visible!==false})}else if(e.type==='health'){const b=s.health;s.health=clamp(b+Number(e.value||0),0,100);events.push({...e,actual:s.health-b,visible:e.visible!==false})}else if(e.type==='damage'){const armor=e.ignoreArmor?0:equipmentTotals(s).armor,final=Math.max(0,Number(e.amount||0)-armor),b=s.health;s.health=clamp(b-final,0,100);events.push({...e,actual:s.health-b,visible:e.visible!==false})}else if(e.type==='stat'){const xs=addStat(s,e.key,e.value);if(e.visible===false)for(const x of xs)x.visible=false;events.push(...xs)}else if(e.type==='heroXp'){const xs=addHeroXp(s,e.value);if(e.visible===false)for(const x of xs)x.visible=false;events.push(...xs)}else if(e.type==='evpXp'){const xs=addEvpXp(s,e.value);if(e.visible===false)for(const x of xs)x.visible=false;events.push(...xs)}else if(e.type==='money'){const b=Number(s.money||0);s.money=Math.max(0,b+Number(e.value||0));events.push({...e,actual:s.money-b,visible:e.visible!==false})}else if(e.type==='statusAdd')events.push(...addStatus(s,e.id));else if(e.type==='statusRemove')events.push(...removeStatus(s,e.id));else if(e.type==='itemAdd')events.push({...e,ok:addItem(s,e.id,Number(e.qty||1)),visible:false});else if(e.type==='itemRemove')events.push({...e,ok:removeItem(s,e.id,Number(e.qty||1)),visible:false});else if(e.type==='flag'){s.flags[e.key]=e.value;events.push({...e,visible:false})}else if(e.type==='unlock'){s.unlocks[e.key]=e.value!==false;events.push({...e,visible:false})}else if(e.type==='relationshipKnown'){if(s.relationships[e.person])s.relationships[e.person].known=e.value!==false}else if(e.type==='relationship'){const r=s.relationships[e.person];if(r)r.values[e.key]=clamp(Number(r.values[e.key]||0)+Number(e.value||0),0,10)}else if(e.type==='relationshipDiscover'){const r=s.relationships[e.person];if(r&&!r.discoveredParams.includes(e.key))r.discoveredParams.push(e.key)}else if(e.type==='memory'){s.memories[e.person]=s.memories[e.person]||{};s.memories[e.person][e.key]=e.value===undefined?true:e.value}else if(e.type==='companion'){const c=s.companions[e.person];if(c){if(e.known!==undefined)c.known=!!e.known;if(e.active!==undefined)c.active=!!e.active;if(e.name)c.name=e.name;if(e.state!==undefined)c.state=e.state}}else if(e.type==='companionFact'){const c=s.companions[e.person];if(c&&!c.facts.includes(e.text))c.facts.push(e.text)}else if(e.type==='clothesAdd'){if(CLOTHES[e.id]&&!s.ownedClothes.includes(e.id))s.ownedClothes.push(e.id);if(e.equip&&CLOTHES[e.id])s.equipment[CLOTHES[e.id].slot]=e.id}else if(e.type==='equip')equip(s,e.id);else if(e.type==='world'){if(e.key==='weather'&&typeof e.value==='object')s.world.weather={...s.world.weather,...e.value};else s.world[e.key]=e.value}}
+function applyEffect(s,e,events){if(e.type==='need'){const b=s.needs[e.key];s.needs[e.key]=clamp(b+Number(e.value||0),0,100);events.push({...e,actual:s.needs[e.key]-b,visible:e.visible!==false})}else if(e.type==='health'){const b=s.health;s.health=clamp(b+Number(e.value||0),0,100);events.push({...e,actual:s.health-b,visible:e.visible!==false})}else if(e.type==='damage'){const armor=e.ignoreArmor?0:equipmentTotals(s).armor,final=Math.max(0,Number(e.amount||0)-armor),b=s.health;s.health=clamp(b-final,0,100);events.push({...e,actual:s.health-b,visible:e.visible!==false})}else if(e.type==='stat'){const xs=addStat(s,e.key,e.value);if(e.visible===false)for(const x of xs)x.visible=false;events.push(...xs)}else if(e.type==='heroXp'){const xs=addHeroXp(s,e.value);if(e.visible===false)for(const x of xs)x.visible=false;events.push(...xs)}else if(e.type==='evpXp'){const xs=addEvpXp(s,e.value);if(e.visible===false)for(const x of xs)x.visible=false;events.push(...xs)}else if(e.type==='money'){const b=Number(s.money||0);s.money=Math.max(0,b+Number(e.value||0));events.push({...e,actual:s.money-b,visible:e.visible!==false})}else if(e.type==='statusAdd')events.push(...addStatus(s,e.id));else if(e.type==='statusRemove')events.push(...removeStatus(s,e.id));else if(e.type==='itemAdd'){
+ const qty=Number(e.qty??1),ok=addItem(s,e.id,qty);
+ if(!ok&&ITEM_DEFS[e.id]){s.pendingLoot=s.pendingLoot||[];s.pendingLoot.push({id:e.id,qty,scene:s.story.sceneId});}
+ events.push({...e,ok,visible:false});if(!ok)events.push({type:'lootPending',id:e.id,qty,visible:true});
+ }else if(e.type==='itemRemove')events.push({...e,ok:removeItem(s,e.id,Number(e.qty||1)),visible:false});else if(e.type==='flag'){s.flags[e.key]=e.value;events.push({...e,visible:false})}else if(e.type==='unlock'){s.unlocks[e.key]=e.value!==false;events.push({...e,visible:false})}else if(e.type==='relationshipKnown'){if(s.relationships[e.person])s.relationships[e.person].known=e.value!==false}else if(e.type==='relationship'){const r=s.relationships[e.person];if(r)r.values[e.key]=clamp(Number(r.values[e.key]||0)+Number(e.value||0),0,10)}else if(e.type==='relationshipDiscover'){const r=s.relationships[e.person];if(r&&!r.discoveredParams.includes(e.key))r.discoveredParams.push(e.key)}else if(e.type==='memory'){s.memories[e.person]=s.memories[e.person]||{};s.memories[e.person][e.key]=e.value===undefined?true:e.value}else if(e.type==='companion'){const c=s.companions[e.person];if(c){if(e.known!==undefined)c.known=!!e.known;if(e.active!==undefined)c.active=!!e.active;if(e.name)c.name=e.name;if(e.state!==undefined)c.state=e.state}}else if(e.type==='companionFact'){const c=s.companions[e.person];if(c&&!c.facts.includes(e.text))c.facts.push(e.text)}else if(e.type==='clothesAdd'){if(CLOTHES[e.id]&&!s.ownedClothes.includes(e.id))s.ownedClothes.push(e.id);if(e.equip&&CLOTHES[e.id])s.equipment[CLOTHES[e.id].slot]=e.id}else if(e.type==='equip')equip(s,e.id);else if(e.type==='world'){if(e.key==='weather'&&typeof e.value==='object')s.world.weather={...s.world.weather,...e.value};else s.world[e.key]=e.value}}
 function reconcileStatuses(s){const ev=[],t=thermal(s),set=(id,on)=>ev.push(...(on?addStatus(s,id):removeStatus(s,id)));set('wet',s.wetness>=40);set('cold',t.coldLevel>=2);set('overheated',t.heatLevel>=2);set('hungry',s.needs.satiety<=40);set('thirsty',s.needs.water<=40);set('tired',s.needs.energy<=40);return ev}
-export function executeAction(state,action){const s=clone(normalizeState(state)),events=[],minutes=Number(action.minutes||0);if(minutes>0){const c=timeCost(s,minutes,action.activity||'light');for(const k of ['satiety','water','energy']){const b=s.needs[k];s.needs[k]=clamp(b+c.needs[k],0,100);if(s.needs[k]!==b)events.push({type:'need',key:k,actual:s.needs[k]-b,visible:true})}s.wetness=clamp(s.wetness+c.wetness,0,100);s.health=clamp(s.health+c.health,0,100);s.clock.totalMinutes+=minutes;events.push(...expireTimedStatuses(s))}for(const e of action.effects||[])applyEffect(s,e,events);for(const e of action.hiddenEffects||[])applyEffect(s,{...e,visible:false},events);events.push(...reconcileStatuses(s));s.updatedAt=Date.now();clearInvalidQuickSlots(s);return{state:s,events}}
+export function executeAction(state,action={}){
+ const s=clone(normalizeState(state)),events=[],minutes=Math.max(0,Number(action.minutes||0));
+ // Validate all resource payments before time, rewards or flags are changed.
+ const payments=clone(s);
+ for(const e of [...(action.effects||[]),...(action.hiddenEffects||[])]){
+   if(e.type==='itemRemove'&&!removeItem(payments,e.id,Number(e.qty??1)))return{state:clone(state),events:[{type:'actionRejected',reason:'missingItem',id:e.id}],accepted:false};
+   if(e.type==='money'&&Number(e.value)<0){if(payments.money+Number(e.value)<0)return{state:clone(state),events:[{type:'actionRejected',reason:'money'}],accepted:false};payments.money+=Number(e.value)}
+ }
+if(minutes>0){const c=timeCost(s,minutes,action.activity||'light');for(const k of ['satiety','water','energy']){const b=s.needs[k];s.needs[k]=clamp(b+c.needs[k],0,100);if(s.needs[k]!==b)events.push({type:'need',key:k,actual:s.needs[k]-b,visible:true})}s.wetness=clamp(s.wetness+c.wetness,0,100);s.health=clamp(s.health+c.health,0,100);s.clock.totalMinutes+=minutes;events.push(...expireTimedStatuses(s))}for(const e of action.effects||[])applyEffect(s,e,events);for(const e of action.hiddenEffects||[])applyEffect(s,{...e,visible:false},events);events.push(...reconcileStatuses(s));events.push(...expireTimedStatuses(s));s.updatedAt=Date.now();clearInvalidQuickSlots(s);return{state:s,events,accepted:true}}
 export function previewAction(state,action){const n=executeAction(state,action).state,parts=[];if(action.minutes>0)parts.push(action.minutes+' хв');const labels={energy:'Бадьорість',water:'Вода',satiety:'Ситість',health:'Здоровʼя'};for(const k of Object.keys(labels)){const a=Math.round(k==='health'?state.health:state.needs[k]),b=Math.round(k==='health'?n.health:n.needs[k]),d=b-a;if(d)parts.push(`${labels[k]} ${d>0?'+':''}${d}%`)}return parts}

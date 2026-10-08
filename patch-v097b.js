@@ -7,24 +7,6 @@ function isCh4State(s){
   return scene.startsWith('ch4_')||Number(s?.story?.chapter||s?.chapter||0)>=4;
 }
 
-async function repairRun097b(run){
-  try{
-    const raw=await loadRun(run);
-    if(!raw||!isCh4State(raw))return false;
-    const scene=String(raw?.story?.sceneId||raw?.scene||'ch4_intro');
-    const fixed=normalizeState(raw);
-    fixed.chapter=4;
-    fixed.scene=scene;
-    fixed.story={...(fixed.story||{}),chapter:4,sceneId:scene};
-    await saveRun(fixed);
-    return true;
-  }catch{return false}
-}
-
-async function repairAll097b(){
-  for(const run of [1,2,3,99])await repairRun097b(run);
-}
-
 async function chapter4Available097b(){
   for(const run of [1,2,3]){
     const raw=await loadRun(run);
@@ -47,10 +29,7 @@ async function decorateChapters097b(){
 }
 
 function install097b(){
-  repairAll097b();
-  document.querySelector('#chaptersBtn')?.addEventListener('click',()=>{
-    for(const ms of [40,140,350])setTimeout(decorateChapters097b,ms);
-  },true);
+  // Save migration and chapter cards are owned by storage.js and main.js.
   document.querySelectorAll('.version,.howto-version,.game-name span').forEach(el=>el.textContent='v0.9.7b TEST');
 }
 

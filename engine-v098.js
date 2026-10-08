@@ -32,7 +32,8 @@ function activateTestStatus(s,id){
 }
 function currentStatusIds(){return Object.keys(STATUS_DEFS).filter(id=>!DEAD_STATUSES.has(id))}
 function syncTestState(s){
-  if(!s?.flags?.testMode)return s;
+  if(!s?.flags?.testMode||s.flags.testSetupApplied098)return s;
+  s.flags.testSetupApplied098=true;
   const cfg=testConfig();
   const selected=Array.isArray(cfg.statuses)?cfg.statuses:[];
   for(const id of selected)activateTestStatus(s,id);
@@ -75,7 +76,7 @@ function syncRelationships(s){
   const entered=new Set(s.story?.entered||[]);
   const evp=ensureRelationship(s,'evpapiy',s.flags?.knowsPigeonName?'Євпапій':'???',{trust:2,offense:4,greed:8,bullshit:6});
   const gal=ensureRelationship(s,'galina','Баба Галя',{trust:5,offense:0});
-  const hood=ensureRelationship(s,'hood','Постать',{trust:0,offense:0});
+  const hood=ensureRelationship(s,'hood',s.flags.darinaRevealed100?'Дарина':'Постать',{trust:0,offense:0});
   const cat=ensureRelationship(s,'cat','Риже гамно',{trust:0,offense:0});
   const creatureNamed=Boolean(s.flags?.truposmerdNamed096);
   const creature=ensureRelationship(s,'creature',creatureNamed?'ТРУПОСМЕРД':'???',{attitude:0});

@@ -24,16 +24,8 @@ function stamp099(){
   document.querySelectorAll('.version,.howto-version,.game-name span').forEach(el=>el.textContent=VERSION099);
   const t=document.querySelector('#testModeBtn');if(t)t.textContent='Тестовий режим';
 }
-function disableSound099(){
-  try{audioManager.setEnabled?.(false)}catch{}
-  try{audioManager.setVolume?.('master',0)}catch{}
-  try{audioManager.setVolume?.('ambient',0)}catch{}
-  try{audioManager.setVolume?.('effects',0)}catch{}
-}
-function hideSoundSettings099(){
-  const root=document.querySelector('#menuContent');
-  if(root?.querySelector('.section-title h2')?.textContent?.trim()==='Налаштування')root.querySelector('.settings-block')?.remove();
-}
+function disableSound099(){} // Sound preferences belong to audioManager.
+function hideSoundSettings099(){}
 
 // ---- Immediate scene consequences -------------------------------------------------
 // v0.9.6 moved HP/items/statuses from scene entry to the next button press.
@@ -104,7 +96,7 @@ function removeHeadFromState099(s){
   s.statusTimers={...(s.statusTimers||{})};delete s.statusTimers.headInjury;
 }
 function migrateState099(raw){
-  if(!raw)return{state:raw,changed:false};
+  if(!raw||raw.flags?.immediateMigration099)return{state:raw,changed:false};
   const original=clone099(raw),hadPost=hasLegacyPost099(original),hadHead=hasDeadHead099(original);
   const entered=new Set(original.story?.entered||[]),sceneId=String(original.story?.sceneId||original.scene||'');
   const freshTestCh4=Boolean(original.flags?.testFreshChapter4099b);
@@ -124,13 +116,6 @@ function migrateState099(raw){
     s.chapter=5;s.scene='ch5_intro';s.story={...(s.story||{}),chapter:5,sceneId:'ch5_intro',finished:false};
     delete s.flags.ch4StepanMissing;delete s.flags.activeHero097;
     s.flags.chapter4Complete099c=true;s.flags.storyUrgent099=false;s.flags.migratedOldFogToCh5099c=true;
-  }
-  if(hadPost&&sceneId&&entered.has(sceneId)){
-    const marker=`post096_${sceneId}`;
-    if(!original.flags?.[marker]){
-      const sc=sceneById099(sceneId),moved=sc?.__movedEffects099?.(s)||[];
-      if(moved.length)s=executeAction(s,{id:`migration099_${sceneId}`,effects:moved}).state;
-    }
   }
   cleanPostFlags099(s);removeHeadFromState099(s);
   if(oldCh4){s.flags.semenEncountered099=true;s.flags.semenIntroduced099=true}

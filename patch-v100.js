@@ -139,14 +139,14 @@ function patchChapter7100(){
   ],text:`– Значить, тебе вона першою підібрала.\n\n– Не називай це так.\n\n– А шо? Потім ще кота підібрала. Система працює.\n\n– Степане.\n\n– Всьо, мовчу.\n\nДалі ви взнаєте, що біля сараю Дарина впізнала вас одразу. Але поки ви пішли з бабою Галею, туман відрізав її від дороги. До двору вона вибралась уже тоді, коли Євпапій літав по селу й орав, що Степан пропав.\n\n– І ти пішла назад у туман.\n\n– А ти б не пішов?\n\nВи згадуєте голос сина.\n\n– Блядь.\n\n– Отож.`,end:true,choices:[]};
 }
 
-function characterName100(card){return card?.querySelector('summary b')?.textContent?.trim()||''}
+function characterName100(card){return card?.querySelector('summary b,b')?.textContent?.trim()||''}
 function setCharacterArt100(card,src){
   if(!card)return;
   const summary=card.querySelector('summary');if(!summary)return;
   let img=summary.querySelector('img');
   const ph=summary.querySelector('.character-placeholder099');
   if(!img){img=document.createElement('img');img.alt='';if(ph)ph.replaceWith(img);else summary.prepend(img)}
-  img.src=src;
+  if(img.getAttribute('src')!==src)img.src=src;
 }
 let menuGuard100=false;
 async function patchMenuKnowledge100(){
@@ -161,14 +161,15 @@ async function patchMenuKnowledge100(){
     const hoodCard=cards.find(c=>characterName100(c)==='Постать');
     const runId=Number((document.querySelector('#menuMeta')?.textContent||'').match(/Проходження\s+(\d+)/)?.[1]||0);
     const state=runId?await loadRun(runId):null;
-    const revealed=Boolean(state?.flags?.darinaRevealed100||window.__dntDarinaRevealed100);
+    const revealed=Boolean(state?.flags?.darinaRevealed100);
     if(h==='Персонажі'){
       if(darinaCard){
         setCharacterArt100(darinaCard,revealed?A100.darinaReveal:A100.darinaBase);
         const body=darinaCard.querySelector('div');
-        if(body)body.innerHTML=revealed
+        const html=revealed
           ?'<p>Ваша дружина.</p><p>Зникла чотири роки тому.</p><p>Впізнала вас ще біля сараю.</p>'
           :'<p>Живе в баби Галі.</p><p>Звідки знає Степана: ???</p>';
+        if(body&&body.innerHTML!==html)body.innerHTML=html;
       }
       if(revealed&&hoodCard)hoodCard.remove();
     }else if(revealed&&hoodCard){
@@ -183,7 +184,7 @@ function syncRevealFlag100(){
     const revealed=/ГЛАВА 7/.test(txt)&&!document.querySelector('#gameScreen')?.classList.contains('hidden')&&[
       'каптур','дарина','чотири роки','малий','як вона сюди попала','хто кого підібрав'
     ].some(x=>txt.toLowerCase().includes(x));
-    if(revealed)window.__dntDarinaRevealed100=true;
+    window.__dntDarinaRevealed100=revealed;
   }catch{}
 }
 function installMenuPatch100(){

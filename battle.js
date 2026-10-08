@@ -1,7 +1,7 @@
 // v0.9.5j – combat + story branches + first-battle help + pre-battle modifiers.
 import {createInitialState,normalizeState,effectiveStat,equipmentTotals,itemCount,removeItem,clone,addHeroXp,addEvpXp,executeAction} from './engine.js?v=096b';
 import {STATUS_DEFS,ITEM_DEFS} from './data.js?v=096b';
-import {loadRun} from './storage.js?v=096b';
+import {loadRun,saveRun} from './storage.js?v=096b';
 
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
@@ -14,6 +14,15 @@ let phaseTimer=null;
 let storyResolver=null;
 let storyOptions=null;
 let battleKind='test';
+let battleWrites=Promise.resolve();
+function battleRandom(state=battle){if(!state)return Math.random();let x=Number(state.rngSeed)||1;x^=x<<13;x^=x>>>17;x^=x<<5;state.rngSeed=x>>>0;return (x>>>0)/4294967296;}
+function persistBattle(){
+  if(battleKind!=='story'||!battle||!sourceState)return;
+  const snapshot=clone(sourceState);snapshot.pendingBattle={...(snapshot.pendingBattle||{}),options:storyOptions,battle:clone(battle),session:clone(evpSession)};
+  window.dispatchEvent(new CustomEvent('dnt:battlecheckpoint',{detail:snapshot}));
+  battleWrites=battleWrites.then(()=>saveRun(snapshot));
+  battleWrites.catch(error=>console.warn('Battle save failed',error));
+}
 
 const evpSession={level:1,maxHp:50,hp:50,skipBattles:0,offended:false};
 
@@ -90,8 +99,8 @@ function syncEvpapiySession(){
   }else{evpSession.level=level;evpSession.maxHp=maxHp;evpSession.hp=clamp(evpSession.hp,1,maxHp)}
 }
 
-function energyCost(base){let extra=0;if(hasStatus('tired'))extra+=2;if(Number(sourceState?.needs?.water||100)<=20)extra+=1;return Math.max(0,base+extra)}
-function randomIntent(b){if(b?.pigeon?.available&&Math.random()<.14)return{...INTENTS.pigeon};const pool=[INTENTS.lunge,INTENTS.grab,INTENTS.heavy,INTENTS.sweep];return{...pool[Math.floor(Math.random()*pool.length)]}}
+function energyCost(base){let extra=0;if(hasStatus('tired'))extra+=2;if(Number(sourceState?.needs?.water??100)<=20)extra+=1;return Math.max(0,base+extra)}
+function randomIntent(b){if(b?.pigeon?.available&&battleRandom(b)<.14)return{...INTENTS.pigeon};const pool=[INTENTS.lunge,INTENTS.grab,INTENTS.heavy,INTENTS.sweep];return{...pool[Math.floor(battleRandom(b)*pool.length)]}}
 
 function initialItems(){
   if(battleKind==='test')return{onion:2,onionAngry:1,onionSmelly:1,garlic:1,medkit:2,salo:1};
@@ -107,11 +116,12 @@ function initialItems(){
 
 function freshBattle(){
   syncEvpapiySession();
-  const hp=clamp(Math.round(Number(sourceState?.health||100)),1,100);
-  const energy=clamp(Math.round(Number(sourceState?.needs?.energy||65)),0,100);
-  let pigeonAvailable=true,recovering=false;
+  const hp=clamp(Math.round(Number(sourceState?.health??100)),0,100);
+  const energy=clamp(Math.round(Number(sourceState?.needs?.energy??65)),0,100);
+  let pigeonAvailable=battleKind==='test'||Boolean(sourceState?.companions?.evpapiy?.known&&sourceState?.companions?.evpapiy?.active&&evpSession.hp>10),recovering=false;
   if(evpSession.skipBattles>0){pigeonAvailable=false;recovering=true;evpSession.skipBattles-=1;evpSession.hp=evpSession.maxHp}
   const b={
+    rngSeed:Number(storyOptions?.rngSeed)||crypto.getRandomValues(new Uint32Array(1))[0]||1,
     heroMax:100,heroHp:hp,heroEnergy:energy,heroLevel:Math.max(1,Number(sourceState?.heroProgression?.level||1)),
     enemyName:storyOptions?.enemyName||'ТЕСТОВА ХУЙНЯ',enemyMax:Number(storyOptions?.enemyMax||100),enemyHp:Number(storyOptions?.enemyHp||100),
     enemyArt:storyOptions?.enemyArt||null,enemyAttackArt:storyOptions?.enemyAttackArt||null,enemyWasHit:false,
@@ -126,14 +136,14 @@ function freshBattle(){
     pigeon:{level:evpSession.level,maxHp:evpSession.maxHp,hp:evpSession.hp,available:pigeonAvailable,recovering,retreated:false,offended:evpSession.offended},
     items:initialItems(),log:[storyOptions?.actionMode==='survival'?'ТРУПОСМЕРД КИДАЄТЬСЯ НА ВАС':'ПОЧИНАЄТЬСЯ БІЙ']
   };
-  b.heroHp=clamp(b.heroHp+Number(storyOptions?.heroHpDelta||0),1,b.heroMax);
+  b.heroHp=clamp(b.heroHp+Number(storyOptions?.heroHpDelta||0),0,b.heroMax);
   if(Number(storyOptions?.openingEnemyDamage||0)>0){const d=Math.max(0,Math.round(Number(storyOptions.openingEnemyDamage)));b.enemyHp=clamp(b.enemyHp-d,b.lockVictory?1:0,b.enemyMax);if(d)b.log.push(`ПЕРЕД БОЄМ: ТРУПОСМЕРД -${d} HP`)}
   b.enemyIntent=randomIntent(b);return b;
 }
 
 function addLog(text){if(!text)return;battle.log.push(text);battle.log=battle.log.slice(-3)}
 function spend(cost){if(battle.heroEnergy<cost){addLog('Не вистачає бадьорості.');return false}battle.heroEnergy=clamp(battle.heroEnergy-cost,0,100);return true}
-function physicalDamage(base){let damage=base+Math.floor(heroStat('strength')*.45);if(Number(sourceState?.needs?.satiety||100)<=20)damage=Math.max(1,Math.round(damage*.85));if(hasStatus('hangover')&&battle.firstDamageAction)damage=Math.max(1,Math.round(damage*.75));damage=Math.max(1,Math.round(damage*Number(battle?.heroDamageMult||1)));battle.firstDamageAction=false;return damage}
+function physicalDamage(base){let damage=base+Math.floor(heroStat('strength')*.45);if(Number(sourceState?.needs?.satiety??100)<=20)damage=Math.max(1,Math.round(damage*.85));if(hasStatus('hangover')&&battle.firstDamageAction)damage=Math.max(1,Math.round(damage*.75));damage=Math.max(1,Math.round(damage*Number(battle?.heroDamageMult||1)));battle.firstDamageAction=false;return damage}
 function hurtEnemy(amount,label){const n=Math.max(0,Math.round(amount)),before=battle.enemyHp,floor=battleKind==='story'&&battle.lockVictory?1:0;battle.enemyHp=clamp(battle.enemyHp-n,floor,battle.enemyMax);const actual=Math.max(0,before-battle.enemyHp);if(actual>0)battle.enemyWasHit=true;addLog(`${label}: -${actual} HP`);return actual}
 function consume(key,qty=1){battle.consumed[key]=(battle.consumed[key]||0)+qty}
 
@@ -154,7 +164,7 @@ function hurtPigeon(amount){if(!battle.pigeon.available)return 0;const n=Math.ma
 function preEnemyPhase(){
   if(checkEnd())return{skip:true};
   if(battle.angryOnionTurns>0){battle.enemyHp=clamp(battle.enemyHp-4,battleKind==='story'&&battle.lockVictory?1:0,battle.enemyMax);battle.angryOnionTurns-=1;addLog('Зла цибуля гризе далі: -4 HP');if(checkEnd())return{skip:true}}
-  if(hasStatus('skunk')){battle.enemyHp=clamp(battle.enemyHp-3,battleKind==='story'&&battle.lockVictory?1:0,battle.enemyMax);addLog('ДИКИЙ СКУНС: -3 HP');if(checkEnd())return{skip:true};if(Math.random()<.2){addLog('Ворог збився через сморід і пропустив хід.');battle.dodging=false;battle.heroEnergy=clamp(battle.heroEnergy+4,0,100);return{skip:true}}}
+  if(hasStatus('skunk')){battle.enemyHp=clamp(battle.enemyHp-3,battleKind==='story'&&battle.lockVictory?1:0,battle.enemyMax);addLog('ДИКИЙ СКУНС: -3 HP');if(checkEnd())return{skip:true};if(battleRandom()<.2){addLog('Ворог збився через сморід і пропустив хід.');battle.dodging=false;battle.heroEnergy=clamp(battle.heroEnergy+4,0,100);return{skip:true}}}
   if(battle.stunTurns>0){battle.stunTurns-=1;addLog('Ворог вирублений. Ваш хід ще раз.');battle.dodging=false;battle.heroEnergy=clamp(battle.heroEnergy+4,0,100);return{skip:true}}
   let intent=battle.enemyIntent||randomIntent(battle);
   if(battle.pigeon.available&&battle.pigeonTargetTurns>0){intent={...INTENTS.pigeon,hint:'Воно різко переключається на Євпапія.'};battle.pigeonTargetTurns-=1}
@@ -166,8 +176,8 @@ function resolveEnemyAttack(target,intent){
   let hitChance=Number(intent?.hit||.82)*Number(battle?.enemyHitMult||1);if(battle.blindTurns>0){hitChance*=.48;battle.blindTurns-=1}
   if(target==='hero'&&battle.dodging){const agility=clamp(.45+heroStat('agility')*.035,.45,.9);hitChance*=1-(agility*Number(intent?.dodgePower??.7))}
   let hit=false,damage=0;
-  if(Math.random()<hitChance){
-    hit=true;const min=Number(intent?.min||13),max=Number(intent?.max||17);let raw=Math.max(1,Math.round((min+Math.floor(Math.random()*(Math.max(0,max-min)+1)))*Number(battle?.enemyDamageMult||1)));
+  if(battleRandom()<hitChance){
+    hit=true;const min=Number(intent?.min||13),max=Number(intent?.max||17);let raw=Math.max(1,Math.round((min+Math.floor(battleRandom()*(Math.max(0,max-min)+1)))*Number(battle?.enemyDamageMult||1)));
     if(target==='hero'&&battle.guarding){raw=Math.max(1,Math.round(raw*.55));addLog('Прикрились · удар слабший.')}
     if(target==='pigeon'&&battle.pigeon.available){damage=hurtPigeon(raw);battle.lastImpact=`ЄВПАПІЮ -${damage} HP`;battle.impactKind='pigeon'}
     else{damage=Math.max(1,raw-armor());battle.heroHp=clamp(battle.heroHp-damage,0,battle.heroMax);addLog(`Ви: -${damage} HP`);battle.lastImpact=`ВАМ -${damage} HP`;battle.impactKind='hero'}
@@ -215,12 +225,13 @@ function triggerShedKnife(){
 function actKnife(){const cost=energyCost(7);if(!spend(cost)){renderBattle();return}if(battleKind==='story'&&battle.storyId==='shedCreature')return triggerShedKnife();hurtEnemy(physicalDamage(14),'Ніж');setCreatureReaction('hit');finishHeroAction()}
 function actDodge(){const cost=energyCost(hasStatus('hangover')?10:8);if(!spend(cost)){renderBattle();return}battle.dodging=true;addLog('Ви готуєтесь відскочити.');finishHeroAction()}
 function actGuard(){const cost=energyCost(5);if(!spend(cost)){renderBattle();return}battle.guarding=true;addLog('Ви прикриваєтесь і чекаєте удару.');finishHeroAction()}
+function actBrace(){battle.heroEnergy=0;battle.guarding=false;addLog('Сил на маневр нема. Ви стискаєтесь і приймаєте удар.');finishHeroAction()}
 function actPrayer(){const cost=energyCost(3);if(!spend(cost)){renderBattle();return}battle.dodging=true;addLog('Ви молитесь далі й стараєтесь не отримати по єбалу.');finishHeroAction()}
 function actPigeon(){if(!battle.pigeon.available)return;const cost=energyCost(10);if(!spend(cost)){renderBattle();return}battle.pigeonThrown=true;battle.pigeonUsed=true;battle.pigeonTargetTurns=1;if(battle.actionMode==='survival'){addLog('Євпапій відволік ТРУПОСМЕРДА на себе.');finishHeroAction();return}const ep=sourceState?.companions?.evpapiy?.progression||{};const dmg=Math.max(1,Math.round((8+Number(ep.attack||1)*2+Number(ep.aggression||1))*Number(battle?.pigeonDamageMult||1)));hurtEnemy(dmg,'Євпапій');setCreatureReaction('hit');finishHeroAction()}
 function actSunset(){if(!battle.pigeon.available)return;const cost=energyCost(6);if(!spend(cost)){renderBattle();return}battle.sunsetUsed=true;battle.pigeonUsed=true;battle.pigeonTargetTurns=1;hurtEnemy(Math.max(1,Math.ceil(battle.enemyHp/2)),'ЗАКАТ ПРЄЗРЄНІЯ');setCreatureReaction('hit');finishHeroAction()}
 function actHeal(){if(Number(battle.items.medkit||0)<=0||battle.heroHp>=battle.heroMax)return;battle.items.medkit-=1;consume('medkit',1);const before=battle.heroHp;battle.heroHp=clamp(battle.heroHp+25,0,battle.heroMax);addLog(`Аптечка: +${battle.heroHp-before} HP`);battle.mode='actions';finishHeroAction()}
 function actEatSalo(){
-  if(Number(sourceState?.needs?.satiety||100)>40||Number(battle.items.salo||0)<=0)return;
+  if(Number(sourceState?.needs?.satiety??100)>40||Number(battle.items.salo||0)<=0)return;
   battle.items.salo-=1;consume('salo',1);
   sourceState.needs=sourceState.needs||{};
   sourceState.needs.satiety=clamp(Number(sourceState.needs.satiety||0)+25,0,100);
@@ -261,6 +272,7 @@ function throwableRack(){const xs=availableThrowables();if(!xs.length)return'<di
 
 function renderActionArea(){
   if(battle.mode==='enemy')return'<div class="battle-enemy-wait">ВОРОГ АТАКУЄ</div>';
+  if(battle.heroEnergy<energyCost(5))return `<div class="battle-actions">${actionButton('СТИСНУТИСЬ · БЕЗ ЗАХИСТУ','brace')}${Number(battle.items.medkit||0)>0&&battle.heroHp<battle.heroMax?actionButton('ЛІКУВАТИСЬ','heal'):''}</div>`;
   if(battle.actionMode==='prayer'){
     return `<div class="battle-actions">${actionButton('МОЛИТИСЬ ДАЛІ','pray-continue',{disabled:battle.heroEnergy<energyCost(3)})}${actionButton('ВІДСКОЧИТИ','dodge',{disabled:battle.heroEnergy<energyCost(hasStatus('hangover')?10:8)})}</div>`;
   }
@@ -285,7 +297,7 @@ function renderActionArea(){
     ${actionButton('ВІДСКОЧИТИ','dodge',{disabled:battle.heroEnergy<dodgeCost})}
     ${actionButton('КИНУТИ ПРЕДМЕТ','items',{disabled:!availableThrowables().length||battle.heroEnergy<energyCost(4)})}
     ${Number(battle.items.medkit||0)>0?actionButton(`ЛІКУВАТИСЬ · 🩹 ×${battle.items.medkit}`,'heal',{disabled:battle.heroHp>=battle.heroMax}):''}
-    ${Number(sourceState?.needs?.satiety||100)<=40&&Number(battle.items.salo||0)>0?actionButton(`ЗʼЇСТИ САЛО · 🥓 ×${battle.items.salo}`,'eat-salo'):''}
+    ${Number(sourceState?.needs?.satiety??100)<=40&&Number(battle.items.salo||0)>0?actionButton(`ЗʼЇСТИ САЛО · 🥓 ×${battle.items.salo}`,'eat-salo'):''}
     ${pigeonAvailable&&!battle.pigeonThrown?actionButton('КИНУТИ ЄВПАПІЄМ','pigeon',{disabled:battle.heroEnergy<pigeonCost}):''}
     ${pigeonAvailable&&!battle.sunsetUsed&&(battleKind==='test'||sourceState?.unlocks?.sunsetContempt)?actionButton('ЗАКАТ ПРЄЗРЄНІЯ','sunset',{disabled:battle.heroEnergy<sunsetCost,extra:'special'}):''}
   </div>`;
@@ -326,6 +338,7 @@ function intentCopy(){
 
 function renderBattle(){
   if(!overlay||!battle)return;
+  persistBattle();
   overlay.classList.toggle('story-mode',battleKind==='story');
   overlay.querySelector('[data-battle-kicker]').textContent=battleKind==='story'?(battle.actionMode==='survival'?'СУТИЧКА':'БІЙ'):'ТЕСТ БОЮ';
   overlay.querySelector('[data-enemy-name]').textContent=battle.enemyName;
@@ -355,21 +368,21 @@ function renderBattle(){
 
 function applyBattleToStoryState(){
   let s=clone(normalizeState(sourceState));
+  delete s.pendingBattle;s.health=clamp(battle.heroHp,0,100);s.needs.energy=clamp(battle.heroEnergy,0,100);
   const fightMinutes=Math.max(3,Math.min(15,Math.max(1,Number(battle.turn||1))*2));
   const blackoutMinutes=battle.result==='knockout'?20:0;
   const timed=executeAction(s,{id:'story_battle_time095q',minutes:fightMinutes+blackoutMinutes,activity:blackoutMinutes?'rest':'light'});
   s=timed.state;
   battle.timeEvents=timed.events||[];
-  s.health=clamp(battle.heroHp,0,100);s.needs.energy=clamp(battle.heroEnergy,0,100);
   for(const [id,qty] of Object.entries(battle.consumed||{}))removeItem(s,id,qty);
   const p=s.companions.evpapiy;s.companions.evpapiy={...p,level:battle.pigeon.level,maxHp:battle.pigeon.maxHp,hp:battle.pigeon.hp,skipBattles:evpSession.skipBattles,offended:battle.pigeon.offended||evpSession.offended};
   const reward=Math.max(0,Number(battle.xpReward??20));const progressEvents=[...(battle.timeEvents||[]),...addHeroXp(s,reward)];if(s.companions.evpapiy?.known&&battle.pigeon.available)progressEvents.push(...addEvpXp(s,reward));battle.progressEvents=progressEvents;
   return normalizeState(s);
 }
 
-function finishStoryBattle(){
+async function finishStoryBattle(){
   if(!storyResolver)return;
-  const resolve=storyResolver;storyResolver=null;const state=applyBattleToStoryState();const outcome=battle.result||'cancel';
+  const resolve=storyResolver;storyResolver=null;await battleWrites.catch(()=>{});const state=applyBattleToStoryState();const outcome=battle.result||'cancel';
   closeOverlay(false);
   // WebKit sometimes kept the full-screen battle layer painted after the result.
   // Remove this particular DOM node completely; the next battle will build a fresh one.
@@ -380,6 +393,8 @@ function finishStoryBattle(){
 
 function handleAction(action){
   if(!battle||battle.mode==='enemy')return;
+  if(battle.result&&action!=='story-continue'&&action!=='restart'&&action!=='close')return;
+  if(action==='brace')return actBrace();
   if(action==='knife')return actKnife();if(action==='dodge')return actDodge();if(action==='guard')return actGuard();if(action==='pray-continue')return actPrayer();if(action==='heal')return actHeal();if(action==='eat-salo')return actEatSalo();if(action==='pigeon')return actPigeon();if(action==='sunset')return actSunset();
   if(action==='items'){battle.mode='items';return renderBattle()}if(action==='items-back'){battle.mode='actions';return renderBattle()}
   if(action.startsWith('item-'))return actItem(action.slice(5));
@@ -436,10 +451,21 @@ function showBattleHelpOnce095j(){
   });
 }
 export async function openStoryBattle(state,options={}){
+  if(Number(state.health)<=0)return{outcome:'lose',state:clone(state),events:[]};
   ensureBattleCss();ensureBattleHelpCss095j();makeOverlay();clearPhaseTimer();battleKind='story';storyOptions={enemyName:'ТРУПОСМЕРД',enemyMax:100,enemyHp:100,enemyArt:CREATURE_ART_095F.normal,enemyAttackArt:CREATURE_ART_095F.attack,lockVictory:true,...options};sourceState=normalizeState(clone(state));
   if(sourceState?.flags?.usedYebatoriumAtCreature&&!('heroDamageMult' in options))storyOptions.heroDamageMult=1.1;
   if(sourceState?.flags?.tipsyNegotiatedWithCreature&&!('enemyHitMult' in options))storyOptions.enemyHitMult=.9;
-  syncEvpapiySession();battle=freshBattle();await showBattleHelpOnce095j();overlay.classList.remove('hidden');overlay.setAttribute('aria-hidden','false');document.body.classList.add('battle-open');renderBattle();return new Promise(resolve=>{storyResolver=resolve});
+  syncEvpapiySession();
+  const saved=sourceState.pendingBattle?.battle;
+  if(saved){battle=clone(saved);Object.assign(evpSession,sourceState.pendingBattle.session||{})}else battle=freshBattle();
+  await showBattleHelpOnce095j();overlay.classList.remove('hidden');overlay.setAttribute('aria-hidden','false');document.body.classList.add('battle-open');
+  const result=new Promise(resolve=>{storyResolver=resolve});renderBattle();
+  if(saved&&battle.mode==='enemy'){
+    if(battle.phase==='impact'||battle.phase==='enemy-resolve')finishTurnAfterEnemy();
+    else if(battle.phase==='enemy'){const target=battle.enemyTarget||battle.enemyIntent.target;resolveEnemyAttack(target,battle.enemyIntent);finishTurnAfterEnemy()}
+    else{clearCreatureReaction();startEnemyPhase()}
+  }
+  return result;
 }
 
 function closeOverlay(resetKind=true){clearPhaseTimer();if(!overlay)return;overlay.classList.add('hidden');overlay.setAttribute('aria-hidden','true');overlay.classList.remove('enemy-attacking','target-pigeon','target-hero','hero-hit','pigeon-hit','enemy-miss','story-mode');document.body.classList.remove('battle-open');if(resetKind){battleKind='test';storyOptions=null}}
