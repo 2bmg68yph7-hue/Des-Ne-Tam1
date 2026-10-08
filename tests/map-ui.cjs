@@ -2,7 +2,7 @@ const {inGame}=require('./browser.cjs');const path=require('node:path'),fs=requi
 inGame(async(page,errors)=>{
  const out=path.resolve(__dirname,'../../../outputs/stage6-ui');fs.mkdirSync(out,{recursive:true});
  await page.addLocatorHandler(page.locator('#stateOverlay:not(.hidden)'),()=>page.locator('#stateOkBtn').evaluate(e=>e.click()));
- await page.locator('#newGameBtn').click();await page.locator('.run-card').first().click();await page.locator('#beginGameBtn').click();
+ await page.evaluate(async()=>{const E=await import('./engine.js?v=096b'),T=await import('./storage.js?v=096b');const s=E.createInitialState();s.resourceWorld={rngSeed:424242,stocks:{},traps:{},discovered:[]};await T.saveRun(s)});await page.locator('#continueBtn').click();await page.locator('.run-card').first().click();await page.waitForTimeout(200);
  await page.locator('#gameNavigation [data-navigate="map"]').click();await page.locator('.route-list [data-travel="well"]').click();await page.waitForTimeout(200);await page.locator('.route-list [data-travel="forest"]').click();await page.waitForTimeout(200);
  const before=await page.evaluate(async()=>{const M=await import('./main.js?v=095');return M.readGameState()});if(before.scene!=='intro'||before.expedition.current!=='forest')throw Error('UI travel changed canonical scene');
  await page.evaluate(()=>{for(let i=0;i<20&&!document.querySelector('#stateOverlay').classList.contains('hidden');i++)document.querySelector('#stateOkBtn').click();document.querySelector('#menuContent').scrollTop=0});await page.waitForTimeout(2600);

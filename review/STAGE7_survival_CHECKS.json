@@ -1,0 +1,46 @@
+{
+  "suite": "survival",
+  "results": [
+    {
+      "name": "overnight with no money or items is available and costs real needs, not a fixed refill",
+      "passed": true
+    },
+    {
+      "name": "four and eight hours of sleep produce different readiness at the same narrative time",
+      "passed": true
+    },
+    {
+      "name": "no payment means no overnight rewards or time; a completed night cannot repeat",
+      "passed": true
+    },
+    {
+      "name": "weather and clothing affect outdoor costs; a sheltered night is protected from outdoor wind",
+      "passed": true
+    },
+    {
+      "name": "fall is always canonical but skill or preparation changes injury; re-entry cannot repeat damage",
+      "passed": true
+    },
+    {
+      "name": "three earlier relationships or memories change a later cost",
+      "passed": true
+    },
+    {
+      "name": "Darina help uses earlier attitude and remains hidden before the hood reveal",
+      "passed": true
+    },
+    {
+      "name": "pigeon earns and spends his own development; Stepan inventory and progress return intact",
+      "passed": true
+    },
+    {
+      "name": "exploration and repeated jobs share a finite chapter XP budget",
+      "passed": true
+    },
+    {
+      "name": "an unfinished deal has both paid and penniless resolution",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

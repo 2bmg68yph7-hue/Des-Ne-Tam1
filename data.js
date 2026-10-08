@@ -1,4 +1,8 @@
 export const STATUS_DEFS={
+  birdOverfed:{name:"ОБ'ЇВСЯ САЛА",portrait:'./pigeon_base_095b.webp',blurb:'Сало перемогло аеродинаміку.',mods:{agility:-1},drainMultipliers:{energy:1.4},durationMinutes:60,extraEffects:['політ недоступний; можна рухатися по землі'],remove:'перечекати 60 ігрових хвилин, поки сало вляжеться.'},
+  birdOffended:{name:'ОБРАЖЕНИЙ ГОЛУБ',portrait:'./pigeon_suspicious.png',blurb:'Гордості більше, ніж здорового глузду.',mods:{charisma:-2,strength:1},durationMinutes:60,remove:'відпочити, поїсти або дати образі минути.'},
+  birdGlory:{name:'ГОЛУБИНА ВЕЛИЧ',portrait:'./pigeon_serious.png',blurb:'Хтось таки визнав місцевого авіадиректора.',mods:{charisma:2,pofigism:1},durationMinutes:120,remove:'саме мине за дві ігрові години.'},
+  birdWings:{name:'КРИЛА В АХУЄ',portrait:'./pigeon_suspicious.png',blurb:'Крила пропонують трохи походити.',mods:{agility:-2},drainMultipliers:{energy:1.3},durationMinutes:90,extraEffects:['політ недоступний; наземний шлях лишається відкритим'],remove:'огляд крила у Галі або 90 ігрових хвилин.'},
   hangover:{
     name:'ЖОСТКИЙ БУДУНЯРА',portrait:'./portrait_base.png',blurb:'Бувало і краще.',
     mods:{attention:-2,agility:-1,pofigism:2},drainMultipliers:{water:1.25},

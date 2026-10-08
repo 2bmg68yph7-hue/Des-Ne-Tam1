@@ -1,3 +1,6 @@
+import {ENEMIES,encounterActions,performEncounterAction} from './encounters.js';
+import {BIRD_TALENTS,talent,spendBirdTalent} from './bird-config.js';
+import {BIRD_QUESTS,birdActions,performBirdAction,resolveBirdEncounter} from './bird.js';
 import {mapMarkup} from './map-ui.js';
 import {LOCATIONS} from './locations.js';
 import {bagLimits,carriedWeight} from './carry.js';
@@ -343,7 +346,7 @@ async function openDeathOverlay(){
 }
 
 function renderHeader(){
-  const tm=formatTime(G.clock.totalMinutes),w=G.world.weather,t=thermal(G),th=threatInfo(G);
+  const tm=formatTime(G.clock.totalMinutes),w=G.world.weather,t=thermal(G),th=G.expedition?.encounter?{key:'high',label:'ВИСОКА'}:threatInfo(G);
   $('#timeLine').textContent=`День ${tm.day} · ${tm.time} · ${PHASE_LABELS[timePhase(G)]}`;
   $('#weatherLine').textContent=`${w.icon} ${w.label} ${w.tempC}° · ${t.feel}`;
   $('#threatLine').textContent=`Небезпека: ${th.label}`;
@@ -354,10 +357,10 @@ function renderHeader(){
 
 function renderStage(scene){
   $('#stageContext').innerHTML=`<span>${esc(locationLabel(G))}</span><span>${activeActor(G)==='evpapiy'?'Євпапій':'Степан'}</span>`;
-  if(awayFromStory(G)){const place=LOCATIONS[currentLocation(G)];scene={...scene,background:asset(place.bg),actors:[{src:heroForClothes(),role:activeActor(G)==='evpapiy'?'pigeon':'hero'}]}}
+  if(awayFromStory(G)||G.expedition?.encounter){const place=LOCATIONS[currentLocation(G)];scene={...scene,background:asset(place.bg),actors:[{src:heroForClothes(),role:activeActor(G)==='evpapiy'?'pigeon':'hero'},...(G.expedition?.encounter?.kind==='cat'?[{src:'./cat_base_095m.png',role:'npc'}]:[])]}}
   const root=$('#stageImage');
   root.style.backgroundImage=`linear-gradient(rgba(5,8,6,.05),rgba(5,8,6,.16)),url('${asset(scene.background||'./bg.jpg')}')`;
-  root.className=`stage-image ${scene.stageTone||''}`;
+  root.className=`stage-image ${scene.stageTone||''} ${activeActor(G)==='evpapiy'&&(awayFromStory(G)||G.expedition?.encounter)?'bird-exploration':''}`;
   if(scene.chapter===7)root.style.setProperty('background-position','center bottom','important');else root.style.removeProperty('background-position');
   const actors=resolveSceneValue(scene.actors||[],G)||[];
   root.innerHTML=actors.map((a,i)=>{const src=asset(resolveSceneValue(a.src,G));return `<img src="${src}" class="actor ${esc(a.role||'')} ${esc(a.position||'')} actor-${i}" alt="">`}).join('');
@@ -367,6 +370,7 @@ function resolveChoices(scene){const xs=resolveSceneValue(scene.choices||[],G)||
 async function choose(choice){
   if(!G||G.health<=0||actionBusy)return;
   if(choice.menu){openMenu(choice.menu);return}
+  if(G.expedition?.encounter)return;
   if(awayFromStory(G)){toast('ПОВЕРНІТЬСЯ ДО РОЗМОВИ','Завершіть дослідження через карту.');return}
   actionBusy=true;
   try{
@@ -392,6 +396,7 @@ async function choose(choice){
 }
 
 function renderStory(scene){
+  if(G.expedition?.encounter){renderEncounter();return}
   if(awayFromStory(G)){const place=LOCATIONS[currentLocation(G)];$('#storyKicker').textContent='ДОСЛІДЖЕННЯ · '+place.label;$('#storyText').innerHTML=paras(place.description);$('#storyExtras').innerHTML='';$('#storyChoices').innerHTML='<button class=story-choice data-explore-place>Дослідити місце</button><button class=story-choice data-explore-map>Обрати стежку на карті</button><button class=story-choice data-return-story>Повернутися до сюжетного місця</button>';$('#storyChoices [data-explore-place]').onclick=()=>openMenu('place');$('#storyChoices [data-explore-map]').onclick=()=>openMenu('map');$('#storyChoices [data-return-story]').onclick=()=>runExpedition(returnToStory);return}
   $('#storyKicker').textContent=`ГЛАВА ${scene.chapter||G.chapter||1} · ${scene.caption||'ДЕСЬ НЕ ТАМ'}`;
   $('#storyText').innerHTML=paras(resolveSceneValue(scene.text||'',G));
@@ -413,6 +418,7 @@ function renderStory(scene){
 }
 
 async function consumeItem(id){
+ if(G?.expedition?.encounter){toast('ЗАРАЗ СУТИЧКА','Використовуйте предмет через бойові дії: ворог теж робить хід.');return}
  if(actionBusy||!G||G.health<=0||G.pendingBattle)return;actionBusy=true;
  try{const r=useItem(G,id);if(!r.used){toast('НЕ ВИКОРИСТОВУЄТЬСЯ','Ця штука поки сюжетна.');return}G=r.state;notifyEvents(r.events);await persist();await renderGame();toast('ВИКОРИСТАНО',ITEM_DEFS[id].name)}finally{actionBusy=false}
 }
@@ -459,10 +465,10 @@ function renderMenu(){
 }
 
 function renderPlace(){
-  const scene=getGameScene(G),context=locationContext(G,scene),actions=awayFromStory(G)?[]:worldActions(G,scene),extra=expeditionActions(G);
-  $('#menuContent').innerHTML=`<div class="section-title"><h2>Місце</h2><span>${esc(PHASE_LABELS[context.phase])} · ${activeActor(G)==='evpapiy'?'Євпапій':'Степан'}</span></div><div class="info-card">${esc(G.world.location)}${context.danger?'<p>Поруч небезпека. Тривалий пошук і відпочинок недоступні.</p>':''}</div>${canExplore(G)?'<button data-open-travel>Обрати стежку на карті</button>':''}<div class="world-actions">${extra.map(a=>`<article class="info-card"><b>${esc(a.label)}</b><p>${esc(a.detail)}</p><button data-expedition-action="${esc(a.id)}" ${a.done?'disabled':''}>${a.minutes} хв · виконати</button></article>`).join('')}${actions.map(a=>`<article class="info-card"><b>${esc(a.label)}</b><p>${esc(a.detail)}</p><button data-world-action="${esc(a.id)}" ${a.done?'disabled':''}>${a.done?'Виконано':a.minutes?`${a.minutes} хв · виконати`:'Забрати'}</button></article>`).join('')||'<div class="empty-state">Зараз зосередьтесь на сюжетній дії. Припаси можна переглянути в інвентарі.</div>'}</div>`;
+  const scene=getGameScene(G),context=locationContext(G,scene),actions=awayFromStory(G)?[]:worldActions(G,scene),extra=[...birdActions(G).map(a=>({...a,bird:true})),...expeditionActions(G)];
+  $('#menuContent').innerHTML=`<div class="section-title"><h2>Місце</h2><span>${esc(PHASE_LABELS[context.phase])} · ${activeActor(G)==='evpapiy'?'Євпапій':'Степан'}</span></div><div class="info-card">${esc(G.world.location)}${context.danger?'<p>Поруч небезпека. Тривалий пошук і відпочинок недоступні.</p>':''}</div>${canExplore(G)?'<button data-open-travel>Обрати стежку на карті</button>':''}<div class="world-actions">${extra.map(a=>`<article class="info-card"><b>${esc(a.label)}</b><p>${esc(a.detail)}</p><button data-expedition-action="${esc(a.id)}" data-bird="${a.bird?'1':'0'}" ${a.done?'disabled':''}>${a.minutes} хв · виконати</button></article>`).join('')}${actions.map(a=>`<article class="info-card"><b>${esc(a.label)}</b><p>${esc(a.detail)}</p><button data-world-action="${esc(a.id)}" ${a.done?'disabled':''}>${a.done?'Виконано':a.minutes?`${a.minutes} хв · виконати`:'Забрати'}</button></article>`).join('')||'<div class="empty-state">Зараз зосередьтесь на сюжетній дії. Припаси можна переглянути в інвентарі.</div>'}</div>`;
   $('#menuContent [data-open-travel]')?.addEventListener('click',()=>openMenu('map'));
-  $('#menuContent').querySelectorAll('[data-expedition-action]').forEach(b=>b.onclick=()=>runExpedition(s=>performExpeditionAction(s,b.dataset.expeditionAction)));
+  $('#menuContent').querySelectorAll('[data-expedition-action]').forEach(b=>b.onclick=()=>runExpedition(s=>b.dataset.bird==='1'?performBirdAction(s,b.dataset.expeditionAction):performExpeditionAction(s,b.dataset.expeditionAction)));
   $('#menuContent').querySelectorAll('[data-world-action]').forEach(b=>b.onclick=async()=>{
     if(actionBusy||G.health<=0)return;actionBusy=true;
     try{const r=performWorldAction(G,b.dataset.worldAction,getGameScene(G));if(r.accepted===false){toast('НЕДОСТУПНО',r.message);return}G=r.state;notifyEvents(r.events);await persist();await renderGame();renderPlace();toast('ДІЯ ВИКОНАНА',r.message)}finally{actionBusy=false}
@@ -648,10 +654,11 @@ function renderCompanions(){
       return `<article class="companion-profile"><div class="companion-main"><img src="${asset(c.portrait||'./pigeon_base.png')}" alt="Євпапій"><div class="companion-main-copy"><div class="companion-name">${esc(c.name||'Євпапій')} · РІВЕНЬ ${p.level}</div><div class="companion-state">${esc(c.active?'З вами':c.state||'Не з вами')}</div><p>До вас прибився жирний наглий голуб, який дуже бісить.</p></div></div>
         <div class="progression-card compact"><div class="progression-head"><div><b>Досвід</b><span>${xp}/100 XP</span></div><div><b>Очки прокачки</b><strong>${p.points}</strong></div></div><div class="progression-bar"><i style="width:${xp}%"></i></div></div>
         <div class="companion-characteristics"><h3>Бойова прокачка</h3>${combat.map(([key,label,value,desc])=>`<div class="comp-stat upgrade"><div class="comp-stat-head"><b>${label} · ${value}</b><button type="button" data-evp-upgrade="${key}" ${p.points<=0||value>=10?'disabled':''}>+1</button></div><span>${esc(desc)}</span></div>`).join('')}</div>
-        <div class="companion-characteristics"><h3>Характер і стосунки</h3><p>${esc(relationshipHint('evpapiy',G))}</p></div><div class="companion-warning">З ним може бути легше. Може, веселіше. А може, на вас просто чекає жирна підстава.</div></article>`;
+        <div class="companion-characteristics"><h3>Здібності · ${c.hp}/${c.maxHp} HP</h3>${Object.entries(BIRD_TALENTS).map(([key,d])=>`<div class="comp-stat upgrade"><b>${esc(d.name)} · ${talent(G,key)}/3</b><p>${esc(d.detail)}</p><button data-bird-talent="${key}" ${p.points<=0||talent(G,key)>=3?'disabled':''}>Розвинути · 1 очко</button></div>`).join('')}</div><div class="companion-characteristics"><h3>Пригоди</h3>${Object.entries(BIRD_QUESTS).map(([key,title])=>`<p>${esc(title)}: ${c.quests?.[key]?esc(c.quests[key].outcome):'Ще попереду'}</p>`).join('')}</div><div class="companion-characteristics"><h3>Характер і стосунки</h3><p>${esc(relationshipHint('evpapiy',G))}</p></div><div class="companion-warning">З ним може бути легше. Може, веселіше. А може, на вас просто чекає жирна підстава.</div></article>`;
     }
     return `<article class="companion-card"><img src="${esc(c.portrait||'')}" alt=""><div><b>${esc(c.name)}</b><span>${esc(c.active?'З вами':c.state||'Не з вами')}</span>${c.facts?.map(x=>`<small>${esc(x)}</small>`).join('')||''}</div></article>`
   }).join('')}`;
+  document.querySelectorAll('[data-bird-talent]').forEach(b=>b.onclick=async()=>{if(actionBusy||G.pendingBattle||G.expedition?.encounter||!spendBirdTalent(G,b.dataset.birdTalent))return;await persist();renderCompanions();toast('ЗДІБНІСТЬ',BIRD_TALENTS[b.dataset.birdTalent].name)});
   document.querySelectorAll('[data-evp-upgrade]').forEach(btn=>btn.onclick=async()=>{if(actionBusy||G.pendingBattle||!spendEvpPoint(G,btn.dataset.evpUpgrade))return;await persist();renderCompanions();toast('ЄВПАПІЙ ПРОКАЧАНИЙ',`${btn.dataset.evpUpgrade==='attack'?'АТАКА':btn.dataset.evpUpgrade==='aggression'?'АГРЕСІЯ':'ЗДОРОВʼЯ'} +1`)})
 }
 
@@ -662,7 +669,13 @@ function renderRelations(){
 
 async function runExpedition(operation){
  if(actionBusy||!G||G.health<=0||G.pendingBattle)return;actionBusy=true;
- try{const r=operation(G);if(!r.accepted){toast('НЕДОСТУПНО',r.message);return}G=r.state;notifyEvents(r.events);await persist();await renderGame();toast('ДОСЛІДЖЕННЯ',r.message)}finally{actionBusy=false}
+ try{const r=operation(G);if(!r.accepted){toast('НЕДОСТУПНО',r.message);return}G=r.state;notifyEvents(r.events);if(G.expedition?.encounter)closeMenu();await persist();await renderGame();toast('ДОСЛІДЖЕННЯ',r.message)}finally{actionBusy=false}
+}
+function renderEncounter(){
+ const e=G.expedition.encounter,d=ENEMIES[e.kind];$('#storyKicker').textContent='НЕБЕЗПЕЧНА ЗУСТРІЧ · '+d.name;
+ $('#storyText').innerHTML=paras(d.intent);$('#storyExtras').innerHTML=`<div class="info-card">Супротивник: ${Math.max(0,e.hp)}/${d.hp} HP · хід ${e.turn+1}${e.blind?' · відволічений':''}</div>`;
+ const root=$('#storyChoices');root.innerHTML=encounterActions(G).map(a=>`<button class="story-choice" data-encounter="${esc(a.id)}" ${a.enabled?'':'disabled'}><span>${esc(a.label)}</span><small>${esc(a.detail)}</small></button>`).join('');
+ root.querySelectorAll('[data-encounter]').forEach(b=>b.onclick=()=>runExpedition(s=>resolveBirdEncounter(performEncounterAction(s,b.dataset.encounter))));
 }
 function renderMap(){
  const root=$('#menuContent');root.innerHTML=mapMarkup(G);

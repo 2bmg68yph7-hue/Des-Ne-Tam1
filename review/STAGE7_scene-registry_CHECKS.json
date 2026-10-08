@@ -1,0 +1,18 @@
+{
+  "suite": "scene-registry",
+  "passed": true,
+  "scenes": 235,
+  "chapterCounts": {
+    "1": 47,
+    "2": 47,
+    "3": 63,
+    "4": 30,
+    "5": 29,
+    "6": 9,
+    "7": 10
+  },
+  "choiceEvaluations": 1235,
+  "artFiles": 73,
+  "issues": [],
+  "errors": []
+}

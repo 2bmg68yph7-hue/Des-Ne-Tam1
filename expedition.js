@@ -1,3 +1,5 @@
+import {canFly,talent} from './bird-config.js';
+import {maybeEncounter} from './encounters.js';
 import {clone,normalizeState,executeAction,effectiveStat,itemCount,addItem,removeItem} from './engine.js?v=096b';
 import {activeActor,locationContext,timePhase,awardExplorationXp} from './world.js';
 import {LOCATIONS} from './locations.js';
@@ -16,7 +18,7 @@ export function travelOptions(s){
  const current=currentLocation(s),links=LOCATIONS[current]?.links||[];
  return links.filter(id=>!LOCATIONS[id].storyOnly&&(LOCATIONS[id].chapter||1)<=chapterOf(s)).map(id=>({id,label:discoveredLocations(s).has(id)?LOCATIONS[id].label:'Невідома стежка',minutes:travelMinutes(s,id),risk:(LOCATIONS[id].risk||0)+(timePhase(s)==='night'?1:0),available:canExplore(s)}));
 }
-function travelMinutes(s,to){const bird=activeActor(s)==='evpapiy',slow=s.needs.energy<20||s.activeStatuses.includes('bump'),night=timePhase(s)==='night';return (bird?6:12)+(slow?10:0)+(night?6:0)+(LOCATIONS[to]?.risk||0)*4}
+function travelMinutes(s,to){const bird=activeActor(s)==='evpapiy'&&canFly(s),slow=s.needs.energy<20||s.activeStatuses.includes('bump'),night=timePhase(s)==='night';return (bird?6:12)+(slow?10:0)+(night?6:0)+(LOCATIONS[to]?.risk||0)*4-(bird?Math.min(3,talent(s,'eye')):0)}
 function initialize(s){
  s.resourceWorld={version:1,discovered:[],stocks:{},traps:{},...(s.resourceWorld||{})};
  if(s.expedition?.anchor!==s.scene)s.expedition={anchor:s.scene,origin:originFor(s),current:originFor(s),worldOrigin:clone(s.world),travelCount:0};
@@ -31,7 +33,8 @@ export function travel(state,to){
  const r=executeAction(s,{id:'travel-'+to,minutes,activity:'walk',effects:[]});s=r.state;initialize(s);setLocation(s,to);s.expedition.travelCount++;
  // Choosing deliberate movement avoids mandatory random damage and soft locks.
  journal(s,'travel-'+to,'Перехід: '+LOCATIONS[to].label,`${minutes} хв${night?' · нічний шлях довший':''}. Припаси й енергія витрачені.`);
- return{...r,state:s,message:LOCATIONS[to].description};
+ s=maybeEncounter(s,state.expedition?.anchor===state.scene?state.expedition.current:originFor(state));
+ return{...r,state:s,message:s.expedition?.encounter?'На стежці небезпека. Оберіть спосіб пройти.':LOCATIONS[to].description};
 }
 function distance(from,to){const q=[[from,0]],seen=new Set();while(q.length){const [id,d]=q.shift();if(id===to)return d;if(seen.has(id))continue;seen.add(id);for(const next of LOCATIONS[id]?.links||[])q.push([next,d+1])}return 1}
 export function returnToStory(state){
@@ -84,7 +87,7 @@ export function expeditionActions(s){
    if(trap)add('check-trap','Перевірити пастку',5,trap.readyAt>s.clock.totalMinutes?`Ще ${trap.readyAt-s.clock.totalMinutes} хв до перевірки.`:'Забрати пастку та перевірити здобич.',{done:trap.readyAt>s.clock.totalMinutes});
   }
  }
- if(bird&&['yard','forest','road'].includes(site))add('bird-survey','Перевірити напрямок згори',8,'Витрачає енергію. Записує розвідку; повторний огляд не дає XP.');
+ if(bird&&canFly(s)&&['yard','forest','road'].includes(site))add('bird-survey','Перевірити напрямок згори',8,'Витрачає енергію. Записує розвідку; повторний огляд не дає XP.');
  for(const [i,loot] of (s.pendingLoot||[]).entries())if(loot.actor===activeActor(s)&&loot.location===site)add('recover:'+i,'Забрати: '+(ITEM_DEFS[loot.id]?.name||loot.id),0,'Потрібне місце та вільна вага в сумці.');
  return out;
 }
@@ -102,7 +105,7 @@ export function performExpeditionAction(state,id){
   if(!addItem(probe,r.output,1))return refusal(state,'Для готової речі бракує місця або вільної ваги. Матеріали не витрачено.');gain(r.output);
  }
  if(id==='drink')effects.push({type:'need',key:'water',value:35});
- if(id==='rest')effects.push({type:'wetness',value:-25});
+ if(id==='rest')effects.push({type:'wetness',value:-25},...(activeActor(s)==='evpapiy'?[{type:'statusRemove',id:'birdOffended'}]:[]));
  if(id==='hunt'){
   const prepared=effectiveStat(s,'attention')>=3&&effectiveStat(s,'agility')>=3;
   effects.push({type:'need',key:'energy',value:prepared?-4:-12});if(!prepared)effects.push({type:'damage',amount:6,ignoreArmor:true});gain('raw_meat');detail=prepared?'Здобули дичину без травми.':'Здобули дичину, але забилися: −6% здоров’я, більше втоми.';

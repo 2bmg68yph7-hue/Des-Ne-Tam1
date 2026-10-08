@@ -1,0 +1,34 @@
+{
+  "suite": "async-safety",
+  "results": [
+    {
+      "name": "old background stops before next track plays",
+      "passed": true
+    },
+    {
+      "name": "late play cannot revive retired background",
+      "passed": true
+    },
+    {
+      "name": "menu renders reuse one ambient track",
+      "passed": true
+    },
+    {
+      "name": "mute cancels pending playback",
+      "passed": true
+    },
+    {
+      "name": "blocked IndexedDB falls back to intact local save",
+      "passed": true
+    },
+    {
+      "name": "late database connection closes",
+      "passed": true
+    },
+    {
+      "name": "unanswered database does not hang a save",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

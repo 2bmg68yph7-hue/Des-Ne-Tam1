@@ -1,0 +1,106 @@
+{
+  "suite": "bird-encounters",
+  "results": [
+    {
+      "name": "zero energy encounter always has guard and escape",
+      "passed": true
+    },
+    {
+      "name": "escape clears encounter without story jump",
+      "passed": true
+    },
+    {
+      "name": "defeat costs health, injury and energy with playable continuation",
+      "passed": true
+    },
+    {
+      "name": "combat victory records own outcome and no canonical mutation",
+      "passed": true
+    },
+    {
+      "name": "food distraction consumes one physical item",
+      "passed": true
+    },
+    {
+      "name": "reload preserves exact encounter turn, HP and random state",
+      "passed": true
+    },
+    {
+      "name": "Operation SALO gives bird a unique piece and own XP",
+      "passed": true
+    },
+    {
+      "name": "completed bird quest cannot duplicate reward or time",
+      "passed": true
+    },
+    {
+      "name": "bird supplies do not change human profile",
+      "passed": true
+    },
+    {
+      "name": "eating SALO actually makes flight unavailable",
+      "passed": true
+    },
+    {
+      "name": "food state expires by action clock",
+      "passed": true
+    },
+    {
+      "name": "injured wings survive wrapper normalization",
+      "passed": true
+    },
+    {
+      "name": "injured bird has a ground route instead of soft lock",
+      "passed": true
+    },
+    {
+      "name": "talent thief uses own point",
+      "passed": true
+    },
+    {
+      "name": "talent beak uses own point",
+      "passed": true
+    },
+    {
+      "name": "talent poop uses own point",
+      "passed": true
+    },
+    {
+      "name": "talent authority uses own point",
+      "passed": true
+    },
+    {
+      "name": "talent eye uses own point",
+      "passed": true
+    },
+    {
+      "name": "human upgrade points stay separate",
+      "passed": true
+    },
+    {
+      "name": "crow victory gives recorded quest and functional glory",
+      "passed": true
+    },
+    {
+      "name": "eavesdropping records local knowledge without Darina reveal",
+      "passed": true
+    },
+    {
+      "name": "report requires actual delivery at Galyas yard",
+      "passed": true
+    },
+    {
+      "name": "Darina learns delivered information after arrival only",
+      "passed": true
+    },
+    {
+      "name": "delivered local report helps later Stepan without teleporting loot",
+      "passed": true
+    },
+    {
+      "name": "poop ability spends energy and removes enemy attack",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

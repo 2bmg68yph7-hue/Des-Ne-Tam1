@@ -1,0 +1,38 @@
+{
+  "suite": "preparation",
+  "results": [
+    {
+      "name": "first chapter earns a spendable level; saving and re-entering cannot farm it",
+      "passed": true
+    },
+    {
+      "name": "a penniless empty-bag character can obtain food; charisma changes the price",
+      "passed": true
+    },
+    {
+      "name": "attention changes the time needed for equipment and path checks",
+      "passed": true
+    },
+    {
+      "name": "preparation routes preserve the canonical destinations",
+      "passed": true
+    },
+    {
+      "name": "canonical potion use consumes a dose exactly once",
+      "passed": true
+    },
+    {
+      "name": "a full tool bag has a reversible way to make room and recover a find",
+      "passed": true
+    },
+    {
+      "name": "bird progression and recovery affect his own actor profile",
+      "passed": true
+    },
+    {
+      "name": "actual UI spends a point, packs water and enters chapter 2",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

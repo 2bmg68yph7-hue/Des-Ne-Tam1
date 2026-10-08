@@ -1,0 +1,22 @@
+{
+  "suite": "bird-status-registry",
+  "results": [
+    {
+      "name": "birdOverfed survives all legacy patches",
+      "passed": true
+    },
+    {
+      "name": "birdOffended survives all legacy patches",
+      "passed": true
+    },
+    {
+      "name": "birdGlory survives all legacy patches",
+      "passed": true
+    },
+    {
+      "name": "birdWings survives all legacy patches",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

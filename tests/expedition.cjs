@@ -3,7 +3,7 @@ inGame(async(page,errors)=>{
  const results=await page.evaluate(async()=>{
   const E=await import('./engine.js?v=096b'),X=await import('./expedition.js'),T=await import('./storage.js?v=096b'),W=await import('./world.js');
   const out=[],assert=(name,test)=>{if(!test)throw Error(name);out.push({name,passed:true})};
-  const prepared=(chapter=1)=>{let s=E.createInitialState();s.scene=s.story.sceneId=`ch${chapter}_prepare`;s.chapter=s.story.chapter=chapter;s.world.location='хата баби Галі';s.world.environment='indoors';s.activeStatuses=[];return E.normalizeState(s)};
+  const prepared=(chapter=1)=>{let s=E.createInitialState();s.scene=s.story.sceneId=`ch${chapter}_prepare`;s.chapter=s.story.chapter=chapter;s.world.location='хата баби Галі';s.world.environment='indoors';s.activeStatuses=[];s.resourceWorld={rngSeed:424242,stocks:{},traps:{},discovered:[]};return E.normalizeState(s)};
   let s=prepared();const original=JSON.stringify(s.story);s=X.travel(s,'yard').state;s=X.travel(s,'well').state;
   assert('travel changes time, needs and location while preserving story',s.clock.totalMinutes>400&&s.needs.energy<65&&X.currentLocation(s)==='well'&&JSON.stringify(s.story)===original);
   assert('forest is adjacent unknown until visited',!X.discoveredLocations(s).has('forest')&&X.travelOptions(s).some(x=>x.id==='forest'&&x.label==='Невідома стежка'));

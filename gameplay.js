@@ -30,14 +30,14 @@ const SCENES={
    ...once(s,'recovered3',{id:'recover3',label:'Перепочити на ґанку.',minutes:20,activity:'rest',effects:[{type:'wetness',value:-20}]}),
    {id:'leave-prepared3',label:'Йти далі.',next:'ch4_intro',effects:[f('preparation3Complete')]}
  ]},
- ch4_prepare:{id:'ch4_prepare',chapter:4,caption:'ніч і наступний день',background:'./bg_hut.jpg',atmosphere:'hut',world:[{type:'world',key:'environment',value:'indoors'},{type:'world',key:'location',value:'хата баби Галі'}],actors:[{...hero,src:'./ch4_stepan_base.png'},galina],text:'Ви заходите до хати. На сьогодні відповідей більше не буде, але є де переночувати.\n\nПеред ніччю можна розібрати припаси й подбати про травму. Наступний день мине біля хати: сон, харч і невелика допомога по господарству теж мають свою ціну.',choices:s=>[
+ ch4_prepare:{id:'ch4_prepare',chapter:4,caption:'ніч і наступний день',background:'./bg_hut.jpg',atmosphere:'hut',world:[{type:'world',key:'environment',value:'indoors'},{type:'world',key:'location',value:'хата баби Галі'}],actors:[{...hero,src:'./hero_shrug_096.png'},galina],text:'Ви заходите до хати. На сьогодні відповідей більше не буде, але є де переночувати.\n\nПеред ніччю можна розібрати припаси й подбати про травму. Наступний день мине біля хати: сон, харч і невелика допомога по господарству теж мають свою ціну.',choices:s=>[
    ...upgrade(s),{id:'look-around4',label:'Перевірити місце, припаси й допомогу.',menu:'place'},
    ...(effectiveStat(s,'charisma')>=3||s.relationships.galina.values.trust>=6&&s.relationships.galina.values.offense<4?[{id:'night-help4',label:'Домовитися про нічліг і харч. Спати 8 годин.',overnight:'help',next:'ch5_intro'}]:[]),
    {id:'night-work4',label:'Допомогти по господарству за харч. Спати 8 годин.',overnight:'work',next:'ch5_intro'},
    ...(itemCount(s,'water')&&itemCount(s,'salo')?[{id:'night-own4',label:'Скористатися власною водою й салом. Спати 8 годин.',overnight:'own',next:'ch5_intro'}]:[]),
    {id:'night-watch4',label:'Спати 4 години, решту ночі прислухатися до двору.',overnight:'watch',next:'ch5_intro'}
  ]},
- ch5_prepare:{id:'ch5_prepare',chapter:5,caption:'під вечір',background:'./ch4_night.jpg',atmosphere:'village',world:[{type:'world',key:'environment',value:'outdoors'},{type:'world',key:'location',value:'біля хати баби Галі'}],actors:s=>[{...hero,src:'./ch4_stepan_base.png'},...(s.companions.evpapiy.active?[bird]:[])],text:'Під вечір ви перевіряєте, що лишилося після дня біля хати. Надворі вогко, а ноги й голова ще пам’ятають сарай.\n\nПоки є можливість, можна поповнити воду, оглянути дорогу поряд і привести одяг до ладу.',choices:s=>[
+ ch5_prepare:{id:'ch5_prepare',chapter:5,caption:'під вечір',background:'./ch4_night.jpg',atmosphere:'village',world:[{type:'world',key:'environment',value:'outdoors'},{type:'world',key:'location',value:'біля хати баби Галі'}],actors:s=>[{...hero,src:'./hero_shrug_096.png'},...(s.companions.evpapiy.active?[bird]:[])],text:'Під вечір ви перевіряєте, що лишилося після дня біля хати. Надворі вогко, а ноги й голова ще пам’ятають сарай.\n\nПоки є можливість, можна поповнити воду, оглянути дорогу поряд і привести одяг до ладу.',choices:s=>[
    ...upgrade(s),{id:'look-around5',label:'Перевірити припаси й доступну допомогу.',menu:'place'},
    ...once(s,'waterPrepared5',{id:'water-prep5',label:'Попити й набрати одну пляшку води.',minutes:5,activity:'light',effects:[need('water',35),gift('water')]}),
    ...once(s,'routePrepared5',{id:'route-prep5',label:s.flags.catFirstMeeting==='polite'?'Оглянути двір поряд із котом, якого вже не проганяєте.':'Придивитися до дороги й своїх кроків.',minutes:effectiveStat(s,'attention')>=3||s.flags.catFirstMeeting==='polite'?5:12,activity:'light',effects:[f('routePrepared')]}),
@@ -47,7 +47,7 @@ const SCENES={
  ch6_prepare:{id:'ch6_prepare',chapter:6,caption:'крила теж болять',background:'./ch4_night.jpg',atmosphere:'village',world:[{type:'world',key:'environment',value:'outdoors'},{type:'world',key:'location',value:'біля хати баби Галі'}],onEnter:[f('storyUrgent099',false)],actors:[bird,galina],text:'Євпапій струшує крила. Після удару об дорогу вони слухаються не відразу. Баба Галя ще стоїть поряд.\n\nПоки можна, варто перевірити себе, попити й зібратися з силами. Степанові припаси лишилися зі Степаном.',choices:s=>[
    ...(s.companions.evpapiy.progression.points>0?[{id:'bird-upgrades6',label:'Застосувати очко розвитку Євпапія.',menu:'companions'}]:[]),
    {id:'bird-place6',label:'Оглянути двір.',menu:'place'},
-   ...once(s,'birdCare6',{id:'bird-care6',label:'Дозволити Галі оглянути крило й дати води.',minutes:5,activity:'rest',effects:[{type:'health',value:12},need('water',30),{type:'wetness',value:-25}]}),
+   ...once(s,'birdCare6',{id:'bird-care6',label:'Дозволити Галі оглянути крило й дати води.',minutes:5,activity:'rest',effects:[{type:'health',value:12},{type:'statusRemove',id:'birdWings'},need('water',30),{type:'wetness',value:-25}]}),
    ...once(s,'birdFood6',{id:'bird-food6',label:'Домовитися про маленький шматок сала.',minutes:3,activity:'dialogue',effects:[need('satiety',25),gift('salo')]}),
    ...once(s,'birdLook6',{id:'bird-look6',label:'Оглянути двір згори, бережучи травмоване крило.',minutes:effectiveStat(s,'attention')>=4?3:8,activity:'light',effects:[need('energy',-4),f('birdCheckedYard6')]}),
    {id:'bird-continue6',label:'Повернутися до розмови.',next:'ch6_darina099d',effects:[f('preparation6Complete')]}
@@ -70,12 +70,13 @@ export function entryGameplay(state,scene){
   if(id==='ch2_side'&&!s.flags.potionConsumedGameplay&&itemCount(s,'potion_unknown')){
     const r=executeAction(s,{effects:[{type:'itemRemove',id:'potion_unknown',qty:1},f('potionConsumedGameplay')]});s=r.state;events.push(...r.events);
   }
+  if(id==='ch6_darina099d'&&!s.flags.darinaLocalReportKnown&&s.flags.birdReportDelivered&&s.memories.evpapiy?.reportVerified){s.flags.darinaLocalReportKnown=true;s.journal=s.journal||[];s.journal.push({id:'report-passed',text:'Місцеві орієнтири',detail:'Галя передала Дарині перевірені місцеві орієнтири, які Євпапій залишив у неї.',chapter:6,clock:s.clock.totalMinutes,actor:'evpapiy'})}
   const actions={
    ch5_into_fog099c:{minutes:FOG_BALANCE.walkMinutes,activity:'walk',effects:[{type:'world',key:'weather',value:{kind:'fog',label:'Туман',icon:'🌫️',tempC:10,wind:1,rain:0}},{type:'wetness',value:12}]},
    ch5_voice_deeper099c:{minutes:FOG_BALANCE.rushMinutes,activity:'walk',effects:[need('energy',effectiveStat(s,'agility')>=3?-2:-5)]},
    ch5_no_road099c:{minutes:FOG_BALANCE.walkMinutes,activity:'walk',effects:[{type:'wetness',value:10}]},
    ch5_fall099c:{effects:[{type:'damage',amount:Math.max(6,(effectiveStat(s,'agility')>=3||s.flags.routePrepared||s.flags.scoutedRoute?FOG_BALANCE.preparedFall:FOG_BALANCE.unpreparedFall)-(s.flags.bandageChecked?FOG_BALANCE.bandageBenefit:0)),ignoreArmor:true},{type:'statusAdd',id:'bump'},f('fogFallApplied')]},
-   ch6_intro099d:{minutes:3,activity:'light',effects:[{type:'damage',amount:s.memories.world?.sharedSupplies?4:8,ignoreArmor:true},{type:'wetness',value:25}]},
+   ch6_intro099d:{minutes:3,activity:'light',effects:[{type:'damage',amount:s.memories.world?.sharedSupplies?4:8,ignoreArmor:true},{type:'statusAdd',id:'birdWings'},{type:'wetness',value:25}]},
    ch6_name099d:{minutes:effectiveStat(s,'agility')>=4?5:10,activity:'walk',effects:[]},
    ch7_intro100:{effects:[{type:'world',key:'weather',value:{kind:'fog',label:'Туман',icon:'🌫️',tempC:10,wind:1,rain:0}},...(effectiveStat(s,'pofigism')>=3||s.activeStatuses.includes('blessed')?[]:[{type:'statusAdd',id:'scared'}])]}
   };

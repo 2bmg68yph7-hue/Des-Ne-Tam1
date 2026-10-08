@@ -87,7 +87,7 @@ export function worldActions(s,scene={}){
     once(action('check-injury','Перевірити себе після падіння',quiet?5:10,'light',[...(quiet?[]:[effect('statusAdd',{id:'scared'})])],'Можна оцінити травму й власні припаси, не розкриваючи особу Постаті.',{xp:15}), 'stepan:7:check-injury');
     if(s.flags.darinaRevealed100){const hood=s.relationships.hood?.values||{},trusted=Number(hood.trust||0)>=6&&Number(hood.offense||0)<3||effectiveStat(s,'charisma')>=4;
       once(action('darina-care','Прийняти допомогу Дарини',trusted?5:10,'rest',[effect('health',{value:trusted?15:8}),statusRemove('bump'),effect('relationship',{person:'hood',key:'trust',value:1})],trusted?'Ваші попередні відповіді допомагають діяти разом.':'Напруга лишилась; спочатку заспокоюєтесь. Допомога все одно доступна.',{memory:'darinaHelpAccepted'}),'stepan:7:darina-care');
-      once(action('fog-markers','Разом перевірити найближчі орієнтири',weird||observant?5:15,'light',[need('energy',weird||observant?-2:-6)],'Це лише ближній огляд: дорога в село ще не знайдена. Ахуй або уважність зменшують ціну.',{memory:'pairedFogCheck',xp:15}),'stepan:7:fog-markers');
+      once(action('fog-markers','Разом перевірити найближчі орієнтири',weird||observant||s.flags.darinaLocalReportKnown?5:15,'light',[need('energy',weird||observant||s.flags.darinaLocalReportKnown?-2:-6)],'Це лише ближній огляд: дорога в село ще не знайдена. Ахуй або уважність зменшують ціну.',{memory:'pairedFogCheck',xp:15}),'stepan:7:fog-markers');
     }
   }
   for(const [i,loot] of (s.pendingLoot||[]).entries())if((!loot.actor||loot.actor===c.actor)&&(!loot.location||loot.location===c.site))out.push(action(`collect-${i}`,`Забрати залишену знахідку: ${loot.id}`,0,'light',[],'Потрібне місце в рюкзаку.',{collect:i}));

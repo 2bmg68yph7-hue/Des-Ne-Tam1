@@ -18,10 +18,11 @@ const clone=x=>JSON.parse(JSON.stringify(x));
 function dayOf(totalMinutes){return Math.floor(Math.max(0,Number(totalMinutes||0))/1440)+1}
 function ensureDiscovered(s,id){s.discoveredStatuses=Array.isArray(s.discoveredStatuses)?s.discoveredStatuses:[];if(!s.discoveredStatuses.includes(id))s.discoveredStatuses.push(id)}
 function cleanStatuses(s){
-  s.activeStatuses=(s.activeStatuses||[]).filter(id=>ALLOWED_STATUSES.has(id));
-  s.discoveredStatuses=(s.discoveredStatuses||[]).filter(id=>ALLOWED_STATUSES.has(id));
+  const valid=id=>ALLOWED_STATUSES.has(id)||Boolean(STATUS_DEFS[id])&&id!=='headInjury';
+  s.activeStatuses=(s.activeStatuses||[]).filter(valid);
+  s.discoveredStatuses=(s.discoveredStatuses||[]).filter(valid);
   s.statusTimers={...(s.statusTimers||{})};
-  for(const id of Object.keys(s.statusTimers))if(!ALLOWED_STATUSES.has(id))delete s.statusTimers[id];
+  for(const id of Object.keys(s.statusTimers))if(!valid(id))delete s.statusTimers[id];
   return s;
 }
 function setActive(s,id,on,events=[]){
@@ -163,7 +164,7 @@ export function executeAction(state,action){
   const expired=(state.activeStatuses||[]).filter(id=>Number.isFinite(Number(state.statusTimers?.[id]))&&Number(state.statusTimers[id])<=Number(state.clock.totalMinutes));
   const before=normalizeState(state),beforeActive=new Set(before.activeStatuses||[]),oldTimers={...(before.statusTimers||{})};
   const r=core.executeAction(before,action);if(r.accepted===false)return r;let s=cleanStatuses(forceChapter(r.state,before));let events=(r.events||[]).filter(e=>{
-    if(e?.type!=='statusAdded'&&e?.type!=='statusRemoved')return true;return ALLOWED_STATUSES.has(e.id);
+    if(e?.type!=='statusAdded'&&e?.type!=='statusRemoved')return true;return ALLOWED_STATUSES.has(e.id)||Boolean(STATUS_DEFS[e.id])&&e.id!=='headInjury';
   });
   for(const id of beforeActive){
     if(!s.activeStatuses.includes(id)||!Number.isFinite(Number(oldTimers[id])))continue;
