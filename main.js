@@ -471,7 +471,7 @@ function renderPlace(){
   $('#menuContent').querySelectorAll('[data-expedition-action]').forEach(b=>b.onclick=()=>runExpedition(s=>b.dataset.bird==='1'?performBirdAction(s,b.dataset.expeditionAction):performExpeditionAction(s,b.dataset.expeditionAction)));
   $('#menuContent').querySelectorAll('[data-world-action]').forEach(b=>b.onclick=async()=>{
     if(actionBusy||G.health<=0)return;actionBusy=true;
-    try{const r=performWorldAction(G,b.dataset.worldAction,getGameScene(G));if(r.accepted===false){toast('НЕДОСТУПНО',r.message);return}G=r.state;notifyEvents(r.events);await persist();await renderGame();renderPlace();toast('ДІЯ ВИКОНАНА',r.message)}finally{actionBusy=false}
+    try{const r=performWorldAction(G,b.dataset.worldAction,getGameScene(G));if(r.accepted===false){toast('НЕДОСТУПНО',r.message);return}G=r.state;notifyEvents(r.events);await persist();await renderGame();toast('ДІЯ ВИКОНАНА',r.message)}finally{actionBusy=false}
   });
 }
 function renderJournal(){
@@ -486,7 +486,7 @@ function renderInventory(){
   root.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{inventoryCategory=b.dataset.cat;renderInventory()});
   root.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>consumeItem(b.dataset.use));
   root.querySelectorAll('[data-leave]').forEach(b=>b.onclick=async()=>{if(actionBusy)return;actionBusy=true;try{const r=leaveItem(G,b.dataset.leave);if(!r.accepted)return;G=r.state;await persist();await renderGame();toast('ВІДКЛАДЕНО','Річ можна забрати назад у розділі «Місце».')}finally{actionBusy=false}});
-  root.querySelectorAll('[data-slot]').forEach(b=>b.onclick=async()=>{assignQuickSlot(G,Number(b.dataset.slot),b.dataset.item);await persist();renderQuickSlots();renderInventory();toast('ШВИДКИЙ СЛОТ',`Поставлено в слот ${Number(b.dataset.slot)+1}`)});
+  root.querySelectorAll('[data-slot]').forEach(b=>b.onclick=async()=>{assignQuickSlot(G,Number(b.dataset.slot),b.dataset.item);await persist();renderQuickSlots();renderMenu();toast('ШВИДКИЙ СЛОТ',`Поставлено в слот ${Number(b.dataset.slot)+1}`)});
 }
 
 function clothingBonusText(d){
@@ -496,6 +496,11 @@ function clothingBonusText(d){
   return parts.join(' · ');
 }
 
+function preparationAllowed(){
+  if(actionBusy)return false;
+  if(G.pendingBattle||G.expedition?.encounter){toast('СПОЧАТКУ СУТИЧКА','Змінити спорядження та розвинути здібності можна після небезпеки.');return false}
+  return true;
+}
 function renderClothes(){
   const root=$('#menuContent'),tot=equipmentTotals(G);
   const equippedIds=Object.values(G.equipment||{}).filter(id=>CLOTHES[id]);
@@ -508,12 +513,13 @@ function renderClothes(){
   }
   root.innerHTML=`<div class="section-title"><h2>Шмотки</h2></div><div class="clothes-total"><span><b>Броня</b> ${tot.armor}</span><span><b>Тепло</b> ${tot.warmth}</span><span><b>Захист від дощу</b> ${tot.rainProtection}</span></div><div class="clothes-shell"><div class="clothes-hero"><img src="${heroForClothes()}" alt="Герой"><div class="equipped-list">${equippedIds.map(id=>`<span>${esc(CLOTHES[id].name)}</span>`).join('')}</div></div><div class="clothes-list">${ownedIds.map(id=>{const d=CLOTHES[id];const on=G.equipment?.[d.slot]===id;return `<article class="clothes-card ${on?'equipped':''}"><b>${esc(d.name)}</b>${d.note?`<span>${esc(d.note)}</span>`:''}<small>${esc(clothingBonusText(d))}</small><button data-equip="${id}" ${on?'disabled':''}>${on?'Вдягнено':'Вдягнути'}</button></article>`}).join('')}</div></div>`;
   root.querySelectorAll('[data-equip]').forEach(b=>b.onclick=async()=>{
+    if(!preparationAllowed())return;
     const before=new Set(G.activeStatuses||[]);
     equip(G,b.dataset.equip);
     const after=new Set(G.activeStatuses||[]),ev=[];
     for(const id of after)if(!before.has(id))ev.push({type:'statusAdded',id});
     for(const id of before)if(!after.has(id))ev.push({type:'statusRemoved',id});
-    notifyEvents(ev);await persist();await renderGame();renderClothes();
+    notifyEvents(ev);await persist();await renderGame();
   });
 }
 
@@ -525,7 +531,7 @@ function renderStats(){
     <div class="progression-card"><div class="progression-head"><div><b>Досвід</b><span>${xp}/100 XP</span></div><div><b>Очки прокачки</b><strong>${p.points}</strong></div></div><div class="progression-bar"><i style="width:${xp}%"></i></div><small>100 XP = новий рівень + 1 очко. Очки ви самі вкладаєте в характеристики.</small></div>
     <div class="stat-list">${STAT_KEYS.map(k=>{const st=G.stats[k]||{level:1},level=Math.max(1,Number(st.level||1)),mod=Number(mods[k]||0),now=effectiveStat(G,k),id=`stat-desc-${k}`;return `<article class="stat-card stat-upgrade-card"><div class="stat-head"><div><b>${STAT_LABELS[k]}</b> <button class="info-btn" type="button" data-info="${id}">ⓘ</button><div class="stat-level">Рівень ${level}${mod?` · <span class="${mod>0?'buff-text':'debuff-text'}">стани ${mod>0?'+':''}${mod}</span> · зараз ${now}`:''}</div></div><button type="button" class="stat-plus" data-stat-upgrade="${k}" ${p.points<=0||level>=10?'disabled':''}>+1</button></div><div class="stat-desc" id="${id}">${esc(STAT_DESCRIPTIONS[k])}</div><div class="stat-flavor">${esc(statFlavorText(k,level))}</div></article>`}).join('')}</div>`;
   root.querySelectorAll('.info-btn').forEach(btn=>btn.onclick=()=>{const el=$('#'+btn.dataset.info);if(el)el.classList.toggle('open')});
-  root.querySelectorAll('[data-stat-upgrade]').forEach(btn=>btn.onclick=async()=>{if(actionBusy||G.pendingBattle||!spendHeroPoint(G,btn.dataset.statUpgrade))return;await persist();renderStats();renderHeader();toast('ПРОКАЧАНО',`${STAT_LABELS[btn.dataset.statUpgrade]} +1`)})
+  root.querySelectorAll('[data-stat-upgrade]').forEach(btn=>btn.onclick=async()=>{if(!preparationAllowed()||!spendHeroPoint(G,btn.dataset.statUpgrade))return;await persist();renderMenu();renderHeader();toast('ПРОКАЧАНО',`${STAT_LABELS[btn.dataset.statUpgrade]} +1`)})
 }
 
 function needTone(v){v=Number(v)||0;if(v>40)return'needgood';if(v>20)return'needmid';if(v>5)return'needlow';return'needcrit'}
@@ -658,8 +664,8 @@ function renderCompanions(){
     }
     return `<article class="companion-card"><img src="${esc(c.portrait||'')}" alt=""><div><b>${esc(c.name)}</b><span>${esc(c.active?'З вами':c.state||'Не з вами')}</span>${c.facts?.map(x=>`<small>${esc(x)}</small>`).join('')||''}</div></article>`
   }).join('')}`;
-  document.querySelectorAll('[data-bird-talent]').forEach(b=>b.onclick=async()=>{if(actionBusy||G.pendingBattle||G.expedition?.encounter||!spendBirdTalent(G,b.dataset.birdTalent))return;await persist();renderCompanions();toast('ЗДІБНІСТЬ',BIRD_TALENTS[b.dataset.birdTalent].name)});
-  document.querySelectorAll('[data-evp-upgrade]').forEach(btn=>btn.onclick=async()=>{if(actionBusy||G.pendingBattle||!spendEvpPoint(G,btn.dataset.evpUpgrade))return;await persist();renderCompanions();toast('ЄВПАПІЙ ПРОКАЧАНИЙ',`${btn.dataset.evpUpgrade==='attack'?'АТАКА':btn.dataset.evpUpgrade==='aggression'?'АГРЕСІЯ':'ЗДОРОВʼЯ'} +1`)})
+  document.querySelectorAll('[data-bird-talent]').forEach(b=>b.onclick=async()=>{if(!preparationAllowed()||!spendBirdTalent(G,b.dataset.birdTalent))return;await persist();renderMenu();toast('ЗДІБНІСТЬ',BIRD_TALENTS[b.dataset.birdTalent].name)});
+  document.querySelectorAll('[data-evp-upgrade]').forEach(btn=>btn.onclick=async()=>{if(!preparationAllowed()||!spendEvpPoint(G,btn.dataset.evpUpgrade))return;await persist();renderMenu();toast('ЄВПАПІЙ ПРОКАЧАНИЙ',`${btn.dataset.evpUpgrade==='attack'?'АТАКА':btn.dataset.evpUpgrade==='aggression'?'АГРЕСІЯ':'ЗДОРОВʼЯ'} +1`)})
 }
 
 function renderRelations(){
@@ -695,12 +701,12 @@ function renderShop(){
   ];
   $('#menuContent').innerHTML=`<div class="section-title"><h2>Крамничка</h2><span><b>${G.money}</b> монет</span></div>${G.flags.shopUnlocked?`<div class="shop-money">У вас зараз <b>${G.money} монет</b>.</div><div class="shop-grid">${items.map(([id,p])=>`<article class="item-card"><div class="item-icon">${ITEM_DEFS[id].icon}</div><div class="item-copy"><b>${esc(ITEM_DEFS[id].name)}</b><span>${p} мон.</span><button data-buy="${id}" data-price="${p}">Купити</button></div></article>`).join('')}</div><div class="section-title shop-work-title"><h2>Як заробити</h2><span>День ${day}</span></div><div class="info-card">Підмести двір і нарубати дрова можна раз на день.</div><div class="shop-jobs">${jobs.map(j=>`<article class="job-card ${j.done?'done':''}"><div><b>${esc(j.title)}</b><span>${j.done?(j.repeat==='daily'?'На сьогодні вже зробили.':'Уже зробили.'):`${j.minutes} хв · +${j.pay} монет`}</span></div><button data-job="${j.id}" ${j.done?'disabled':''}>${j.done?'Готово':'Взятись'}</button></article>`).join('')}</div>`:'<div class="locked-big">Ще закрито.</div>'}`;
   if(surcharge){const note=document.createElement('div');note.className='info-card';note.textContent='За незавершене підозріле діло припаси дорожчі на 2 монети. У розділі «Місце» можна розрахуватися або відпрацювати залишок.';$('#menuContent .shop-grid')?.before(note)}
-  document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=async()=>{if(actionBusy||G.pendingBattle||G.health<=0)return;const p=Number(b.dataset.price);if(G.money<p){toast('НЕМА ГРОШЕЙ','Ну от так.');return}if(!addItem(G,b.dataset.buy,1)){toast('НЕМА МІСЦЯ','Інвентар забитий.');return}G.money-=p;await persist();renderShop()});
+  document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=async()=>{if(actionBusy||G.pendingBattle||G.health<=0)return;const p=Number(b.dataset.price);if(G.money<p){toast('НЕМА ГРОШЕЙ','Ну от так.');return}if(!addItem(G,b.dataset.buy,1)){toast('НЕМА МІСЦЯ','Інвентар забитий.');return}G.money-=p;await persist();renderMenu()});
   document.querySelectorAll('[data-job]').forEach(b=>b.onclick=async()=>{
     const j=jobs.find(x=>x.id===b.dataset.job);if(!j||j.done||actionBusy||!locationContext(G,getGameScene(G)).safe)return;
     actionBusy=true;try{
     const r=executeAction(G,{id:`shop_${j.id}`,minutes:j.minutes,activity:'work',effects:j.effects.filter(e=>e.type!=='stat'),hiddenEffects:j.hidden});
-    G=r.state;notifyEvents([...r.events,...awardExplorationXp(G,j.effects.some(e=>e.type==='stat')?10:0)]);await persist();await renderGame();renderShop();toast('ЗАРОБИЛИ',`+${j.pay} монет`);
+    G=r.state;notifyEvents([...r.events,...awardExplorationXp(G,j.effects.some(e=>e.type==='stat')?10:0)]);await persist();await renderGame();toast('ЗАРОБИЛИ',`+${j.pay} монет`);
     }finally{actionBusy=false}
   });
 }

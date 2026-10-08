@@ -1,0 +1,14 @@
+{
+  "suite": "combat-menu",
+  "results": [
+    {
+      "name": "Stepan preparation locked during combat and restored after escape",
+      "passed": true
+    },
+    {
+      "name": "Evpapiy preparation locked during combat and restored after escape",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

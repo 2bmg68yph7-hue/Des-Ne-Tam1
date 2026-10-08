@@ -1,0 +1,263 @@
+{
+  "passed": true,
+  "logicAndAsyncCases": 114,
+  "uniqueInterfaceScreens": 45,
+  "sceneCount": 235,
+  "choiceEvaluations": 1235,
+  "checkedArtFiles": 73,
+  "journeys": [
+    {
+      "file": "FINAL_journey_CHECKS.json",
+      "strategy": "balanced",
+      "steps": 124,
+      "chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "final": {
+        "scene": "ch7_shed_truth100",
+        "health": 74,
+        "needs": {
+          "satiety": 69.044,
+          "water": 51.646,
+          "energy": 84.44
+        },
+        "progression": {
+          "level": 4,
+          "xp": 80,
+          "xpToNext": 100,
+          "points": 3
+        }
+      }
+    },
+    {
+      "file": "STAGE7_JOURNEY_vodka.json",
+      "strategy": "vodka",
+      "steps": 125,
+      "chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "final": {
+        "scene": "ch7_shed_truth100",
+        "health": 70,
+        "needs": {
+          "satiety": 67.284,
+          "water": 48.006,
+          "energy": 84.44
+        },
+        "progression": {
+          "level": 4,
+          "xp": 80,
+          "xpToNext": 100,
+          "points": 3
+        }
+      }
+    },
+    {
+      "file": "STAGE7_JOURNEY_garlic.json",
+      "strategy": "garlic",
+      "steps": 125,
+      "chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "final": {
+        "scene": "ch7_shed_truth100",
+        "health": 63,
+        "needs": {
+          "satiety": 67.284,
+          "water": 48.006,
+          "energy": 84.44
+        },
+        "progression": {
+          "level": 4,
+          "xp": 80,
+          "xpToNext": 100,
+          "points": 3
+        }
+      }
+    }
+  ],
+  "reports": [
+    {
+      "file": "STAGE7_async-safety_CHECKS.json",
+      "suite": "async-safety",
+      "passed": true,
+      "cases": 7,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_bird-encounters_CHECKS.json",
+      "suite": "bird-encounters",
+      "passed": true,
+      "cases": 25,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_bird-ui_CHECKS.json",
+      "suite": "bird-ui",
+      "passed": true,
+      "cases": 0,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_combat_CHECKS.json",
+      "suite": "combat",
+      "passed": true,
+      "cases": 4,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_expedition_CHECKS.json",
+      "suite": "expedition",
+      "passed": true,
+      "cases": 18,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_foundations_CHECKS.json",
+      "suite": "foundations",
+      "passed": true,
+      "cases": 21,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_interface_CHECKS.json",
+      "suite": "interface",
+      "passed": true,
+      "cases": 0,
+      "screens": 45
+    },
+    {
+      "file": "STAGE7_journey_CHECKS.json",
+      "suite": "journey",
+      "passed": true,
+      "cases": 0,
+      "screens": 4
+    },
+    {
+      "file": "STAGE7_JOURNEY_garlic.json",
+      "suite": "journey",
+      "passed": true,
+      "cases": 0,
+      "screens": 4
+    },
+    {
+      "file": "STAGE7_JOURNEY_vodka.json",
+      "suite": "journey",
+      "passed": true,
+      "cases": 0,
+      "screens": 4
+    },
+    {
+      "file": "STAGE7_map-ui_CHECKS.json",
+      "suite": "map-ui",
+      "passed": true,
+      "cases": 0,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_PAGES_CHECKS.json",
+      "suite": "bird-ui",
+      "passed": true,
+      "cases": 0,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_preparation_CHECKS.json",
+      "suite": "preparation",
+      "passed": true,
+      "cases": 8,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_scene-registry_CHECKS.json",
+      "suite": "scene-registry",
+      "passed": true,
+      "cases": 0,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_status-registry_CHECKS.json",
+      "suite": "bird-status-registry",
+      "passed": true,
+      "cases": 4,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_survival_CHECKS.json",
+      "suite": "survival",
+      "passed": true,
+      "cases": 10,
+      "screens": 0
+    },
+    {
+      "file": "STAGE7_world_CHECKS.json",
+      "suite": "world",
+      "passed": true,
+      "cases": 15,
+      "screens": 0
+    },
+    {
+      "file": "FINAL_bird-ui_CHECKS.json",
+      "suite": "bird-ui",
+      "passed": true,
+      "cases": 0,
+      "screens": 0
+    },
+    {
+      "file": "FINAL_combat-menu_CHECKS.json",
+      "suite": "combat-menu",
+      "passed": true,
+      "cases": 2,
+      "screens": 0
+    },
+    {
+      "file": "FINAL_interface_CHECKS.json",
+      "suite": "interface",
+      "passed": true,
+      "cases": 0,
+      "screens": 45
+    },
+    {
+      "file": "FINAL_journey_CHECKS.json",
+      "suite": "journey",
+      "passed": true,
+      "cases": 0,
+      "screens": 4
+    },
+    {
+      "file": "FINAL_PAGES_CHECKS.json",
+      "suite": "map-ui",
+      "passed": true,
+      "cases": 0,
+      "screens": 0
+    },
+    {
+      "file": "FINAL_scene-registry_CHECKS.json",
+      "suite": "scene-registry",
+      "passed": true,
+      "cases": 0,
+      "screens": 0
+    }
+  ],
+  "browser": "Chrome on Windows; headless, mobile viewports",
+  "realPhoneTestsComplete": false,
+  "liveDeploymentConfirmed": false
+}

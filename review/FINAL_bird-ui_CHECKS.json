@@ -1,0 +1,11 @@
+{
+  "suite": "bird-ui",
+  "passed": true,
+  "turn": 0,
+  "quest": {
+    "outcome": "Перемога в сутичці",
+    "clock": 415
+  },
+  "actor": "evpapiy",
+  "errors": []
+}

@@ -1,0 +1,13 @@
+{
+  "suite": "map-ui",
+  "passed": true,
+  "before": {
+    "scene": "intro",
+    "location": "forest"
+  },
+  "after": {
+    "scene": "intro",
+    "stock": 2
+  },
+  "errors": []
+}
