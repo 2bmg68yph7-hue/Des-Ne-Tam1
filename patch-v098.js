@@ -1,3 +1,4 @@
+import {advanceOvernight} from './gameplay.js';
 // v0.9.9 TEST – stabilization pass.
 // Fixes scene consequences, chapter 4 pacing/knowledge, menu knowledge, shop gating,
 // image loading and test-mode completeness without adding new game mechanics.
@@ -285,13 +286,12 @@ const cat5099=()=>({role:'npc ch4-cat097',src:'./cat_base_095m.png',position:'np
 function ch5ChoiceFlag099(id,label,next,key,value,extra=[]){return{id,label,next,hiddenEffects:[{type:'flag',key,value},...extra]}}
 function chapter5Arrival099(s){
   if(!s.flags?.chapter5TimeSet099c){
-    const now=Number(s.clock?.totalMinutes||400),nextDay=Math.floor(now/1440)+1;
-    s.clock={...(s.clock||{}),totalMinutes:nextDay*1440+18*60};
-    s.needs={...(s.needs||{}),satiety:Math.max(72,Number(s.needs?.satiety||0)),water:Math.max(72,Number(s.needs?.water||0)),energy:Math.max(78,Number(s.needs?.energy||0))};
-    s.wetness=0;
+    // Compatibility for a save that reaches this entry without the new interlude.
+    const night=advanceOvernight(s,'work');Object.assign(s,night.state);
   }
   return[{type:'flag',key:'chapter5TimeSet099c',value:true},{type:'flag',key:'chapter5Started099c',value:true},{type:'flag',key:'storyUrgent099',value:false}];
 }
+
 function ch5EvpReplyText099(s){
   switch(s.flags?.ch5EvpReply099c){
     case'trust':return'– Я їй вірю. Просто хочу знати більше.\n\n– Ну то це вже друга проблема.\n\n– Дуже помогло.\n\n– Обращайся.';

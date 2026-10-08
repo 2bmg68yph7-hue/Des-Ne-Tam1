@@ -1,7 +1,7 @@
 import {CHAPTER_META,chapterOf} from './chapters.js';
 import {exportBackup,importBackup,validateBackup} from './storage.js?v=096b';
-import {syncActor,activeActor,worldActions,performWorldAction,leaveItem,locationContext,PHASE_LABELS,timePhase} from './world.js';
-import {supplementalScene,routeNext,entryGameplay} from './gameplay.js';
+import {syncActor,activeActor,worldActions,performWorldAction,leaveItem,awardExplorationXp,locationContext,PHASE_LABELS,timePhase} from './world.js';
+import {supplementalScene,routeNext,entryGameplay,performGameplayChoice} from './gameplay.js';
 import {STAT_KEYS,STAT_LABELS,STAT_DESCRIPTIONS} from './config.js?v=096b';
 import {STATUS_DEFS,CLOTHES,ITEM_DEFS} from './data.js?v=096b';
 import {createInitialState,normalizeState,formatTime,threatInfo,thermal,equipmentTotals,equip,statModifiers,effectiveStat,itemCount,assignQuickSlot,useItem,executeAction,previewAction,addItem,spendHeroPoint,spendEvpPoint,addHeroXp,addEvpXp} from './engine.js?v=096b';
@@ -358,7 +358,7 @@ async function choose(choice){
   actionBusy=true;
   try{
   await audioManager.unlock();
-  const r=executeAction(G,{id:choice.id,minutes:choice.minutes||0,activity:choice.activity||'light',effects:choice.effects||[],hiddenEffects:choice.hiddenEffects||[]});
+  const r=performGameplayChoice(G,choice);
   if(r.accepted===false){toast('ДІЯ НЕДОСТУПНА','Для цієї дії бракує ресурсу. Оберіть інший спосіб.');return}
   G=r.state;notifyEvents(r.events);
 
@@ -388,7 +388,8 @@ function renderStory(scene){
   for(const c of resolveChoices(scene)){
     const b=document.createElement('button');
     b.className=`story-choice ${c.kind==='secret'?'secret':''}`;
-    const prev=previewAction(G,{id:'preview',minutes:c.minutes||0,activity:c.activity||'light',effects:c.effects||[]}).filter(x=>/^(Бадьорість|Вода|Ситість|Здоровʼя)/.test(x));
+    let prev=previewAction(G,{id:'preview',minutes:c.minutes||0,activity:c.activity||'light',effects:c.effects||[]});
+    if(c.overnight){const after=performGameplayChoice(G,c).state;prev=['Ніч і наступний день'];for(const [key,label] of [['energy','Бадьорість'],['water','Вода'],['satiety','Ситість'],['health','Здоровʼя']]){const d=Math.round((key==='health'?after.health:after.needs[key])-(key==='health'?G.health:G.needs[key]));if(d)prev.push(`${label} ${d>0?'+':''}${d}%`)}}
     const prevHtml=prev.map(x=>`<span class="choice-cost ${x.includes('+')?'plus':'minus'}">${esc(x)}</span>`).join(' · ');
     b.innerHTML=`<span>${esc(c.label)}</span>${prev.length?`<small>${prevHtml}</small>`:''}`;
     b.disabled=G.health<=0;
@@ -670,7 +671,8 @@ function renderMap(){
 }
 
 function renderShop(){
-  const items=[['water',4],['aspirin',8],['onion',2]];
+  const surcharge=G.chapter>=3&&G.flags.suspiciousDealConsequencePending?2:0;
+  const items=[['water',4+surcharge],['aspirin',8+surcharge],['onion',2+surcharge]];
   const day=Math.floor(Number(G.clock?.totalMinutes||0)/1440)+1;
   const jobs=[
     {id:'sweep',title:'Підмести двір',pay:2,minutes:15,repeat:'daily',done:Number(G.flags.sweptYardDay||0)===day,effects:[{type:'money',value:2}],hidden:[{type:'flag',key:'sweptYard',value:true},{type:'flag',key:'sweptYardDay',value:day}]},
@@ -678,11 +680,14 @@ function renderShop(){
     {id:'deal',title:'Підписатись на підозріле діло',pay:8,minutes:10,repeat:'once',done:Boolean(G.flags.suspiciousDeal),effects:[{type:'money',value:8}],hidden:[{type:'flag',key:'suspiciousDeal',value:true},{type:'flag',key:'suspiciousDealDay',value:day},{type:'flag',key:'suspiciousDealConsequence',value:true},{type:'flag',key:'suspiciousDealConsequencePending',value:true}]}
   ];
   $('#menuContent').innerHTML=`<div class="section-title"><h2>Крамничка</h2><span><b>${G.money}</b> монет</span></div>${G.flags.shopUnlocked?`<div class="shop-money">У вас зараз <b>${G.money} монет</b>.</div><div class="shop-grid">${items.map(([id,p])=>`<article class="item-card"><div class="item-icon">${ITEM_DEFS[id].icon}</div><div class="item-copy"><b>${esc(ITEM_DEFS[id].name)}</b><span>${p} мон.</span><button data-buy="${id}" data-price="${p}">Купити</button></div></article>`).join('')}</div><div class="section-title shop-work-title"><h2>Як заробити</h2><span>День ${day}</span></div><div class="info-card">Підмести двір і нарубати дрова можна раз на день.</div><div class="shop-jobs">${jobs.map(j=>`<article class="job-card ${j.done?'done':''}"><div><b>${esc(j.title)}</b><span>${j.done?(j.repeat==='daily'?'На сьогодні вже зробили.':'Уже зробили.'):`${j.minutes} хв · +${j.pay} монет`}</span></div><button data-job="${j.id}" ${j.done?'disabled':''}>${j.done?'Готово':'Взятись'}</button></article>`).join('')}</div>`:'<div class="locked-big">Ще закрито.</div>'}`;
+  if(surcharge){const note=document.createElement('div');note.className='info-card';note.textContent='За незавершене підозріле діло припаси дорожчі на 2 монети. У розділі «Місце» можна розрахуватися або відпрацювати залишок.';$('#menuContent .shop-grid')?.before(note)}
   document.querySelectorAll('[data-buy]').forEach(b=>b.onclick=async()=>{const p=Number(b.dataset.price);if(G.money<p){toast('НЕМА ГРОШЕЙ','Ну от так.');return}if(!addItem(G,b.dataset.buy,1)){toast('НЕМА МІСЦЯ','Інвентар забитий.');return}G.money-=p;await persist();renderShop()});
   document.querySelectorAll('[data-job]').forEach(b=>b.onclick=async()=>{
-    const j=jobs.find(x=>x.id===b.dataset.job);if(!j||j.done)return;
-    const r=executeAction(G,{id:`shop_${j.id}`,minutes:j.minutes,activity:'work',effects:j.effects,hiddenEffects:j.hidden});
-    G=r.state;notifyEvents(r.events);await persist();await renderGame();renderShop();toast('ЗАРОБИЛИ',`+${j.pay} монет`);
+    const j=jobs.find(x=>x.id===b.dataset.job);if(!j||j.done||actionBusy||!locationContext(G,getGameScene(G)).safe)return;
+    actionBusy=true;try{
+    const r=executeAction(G,{id:`shop_${j.id}`,minutes:j.minutes,activity:'work',effects:j.effects.filter(e=>e.type!=='stat'),hiddenEffects:j.hidden});
+    G=r.state;notifyEvents([...r.events,...awardExplorationXp(G,j.effects.some(e=>e.type==='stat')?10:0)]);await persist();await renderGame();renderShop();toast('ЗАРОБИЛИ',`+${j.pay} монет`);
+    }finally{actionBusy=false}
   });
 }
 
