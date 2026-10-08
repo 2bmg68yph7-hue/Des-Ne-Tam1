@@ -1,0 +1,371 @@
+{
+  "suite": "interface",
+  "passed": true,
+  "views": [
+    {
+      "tab": "story",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "overview",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "hero",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "inventory",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "stats",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "states",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "needs",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "clothes",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "characters",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "relations",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "companions",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "place",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "map",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "journal",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "settings",
+      "width": 320,
+      "documentWidth": 320,
+      "contentWidth": 320,
+      "clientWidth": 320,
+      "loaded": true
+    },
+    {
+      "tab": "story",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "overview",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "hero",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "inventory",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "stats",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "states",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "needs",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "clothes",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "characters",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "relations",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "companions",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "place",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "map",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "journal",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "settings",
+      "width": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "clientWidth": 390,
+      "loaded": true
+    },
+    {
+      "tab": "story",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "overview",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "hero",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "inventory",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "stats",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "states",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "needs",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "clothes",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "characters",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "relations",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "companions",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "place",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "map",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "journal",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    },
+    {
+      "tab": "settings",
+      "width": 430,
+      "documentWidth": 430,
+      "contentWidth": 430,
+      "clientWidth": 430,
+      "loaded": true
+    }
+  ],
+  "unknown": {
+    "scene": "ch9_unknown",
+    "text": "Ця сцена ще не підтримується цією версією гри. Ваше проходження збережене. Оновіть гру або експортуйте сейв у налаштуваннях."
+  },
+  "errors": []
+}

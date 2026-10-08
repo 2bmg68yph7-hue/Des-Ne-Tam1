@@ -29,10 +29,11 @@ export function timePhase(s){const m=Number(s.clock.totalMinutes)%1440;return m<
 export const PHASE_LABELS={morning:'Ранок',day:'День',evening:'Вечір',night:'Ніч'};
 export function locationContext(s,scene={}){
   const id=String(s.scene),loc=String(s.world.location||''),chapter=chapterOf(s),actor=activeActor(s);
-  const site=/туман/i.test(loc)||/ch5_(into_fog|voice_deeper|name_shout|no_road|figure|evp_grabs|fall)/.test(id)||chapter===7?'fog':/за сараєм|сарай/i.test(loc)?'shed':/столом|помин/i.test(loc)?'wake':s.world.environment==='indoors'?'hut':/криниц/i.test(loc)?'well':/дорога/i.test(loc)?'road':'yard';
+  const selected=s.expedition?.anchor===s.scene?s.expedition.current:null;
+  const site=selected||(/туман/i.test(loc)||/ch5_(into_fog|voice_deeper|name_shout|no_road|figure|evp_grabs|fall)/.test(id)||chapter===7?'fog':/за сараєм|сарай/i.test(loc)?'shed':/столом|помин/i.test(loc)?'wake':s.world.environment==='indoors'?'hut':/криниц/i.test(loc)?'well':/дорога/i.test(loc)?'road':'yard');
   const danger=Boolean(s.pendingBattle)||chapter===3&&!/galina|wake_crowd|evp_missing|cat|evp_returns|prepare/.test(id)||chapter===2&&/bang|after_bang|side|garlic|pigeon_scared|figure|end/.test(id)||chapter===5&&site==='fog';
   const busy=scene.storyPace==='urgent'||s.flags.storyUrgent099;
-  return{chapter,actor,site,phase:timePhase(s),danger,busy,safe:!danger&&!busy&&!['fog','shed','road'].includes(site),galina:Boolean(s.relationships.galina?.known)&&['hut','yard','wake'].includes(site),night:timePhase(s)==='night'};
+  return{chapter,actor,site,phase:timePhase(s),danger,busy,safe:!danger&&!busy&&['hut','yard','wake','well'].includes(site),galina:Boolean(s.relationships.galina?.known)&&['hut','yard','wake'].includes(site),night:timePhase(s)==='night'};
 }
 const effect=(type,fields={})=>({type,...fields});
 const need=(key,value)=>effect('need',{key,value});
@@ -42,7 +43,7 @@ const flag=(key,value=true)=>effect('flag',{key,value});
 function action(id,label,minutes,activity,effects,detail,options={}){return{id,label,minutes,activity,effects,detail,...options}}
 function skill(s,key,target=3){return effectiveStat(s,key)>=target}
 export function worldActions(s,scene={}){
-  if(s.health<=0||s.pendingBattle)return[];
+  if(s.health<=0||s.pendingBattle||s.expedition?.encounter)return[];
   const c=locationContext(s,scene),out=[],key=id=>`${c.actor}:${c.chapter}:${c.site}:${id}`;
   const once=(a,scope=key(a.id))=>out.push({...a,onceKey:scope,done:Boolean(s.exploration?.completed?.[scope])});
   const g=s.relationships.galina?.values||{},bird=s.relationships.evpapiy?.values||{},quiet=skill(s,'pofigism'),observant=skill(s,'attention'),nimble=skill(s,'agility'),strong=skill(s,'strength'),persuasive=skill(s,'charisma'),weird=skill(s,'ahui');
@@ -89,7 +90,7 @@ export function worldActions(s,scene={}){
       once(action('fog-markers','Разом перевірити найближчі орієнтири',weird||observant?5:15,'light',[need('energy',weird||observant?-2:-6)],'Це лише ближній огляд: дорога в село ще не знайдена. Ахуй або уважність зменшують ціну.',{memory:'pairedFogCheck',xp:15}),'stepan:7:fog-markers');
     }
   }
-  for(const [i,loot] of (s.pendingLoot||[]).entries())if(!loot.actor||loot.actor===c.actor)out.push(action(`collect-${i}`,`Забрати залишену знахідку: ${loot.id}`,0,'light',[],'Потрібне місце в рюкзаку.',{collect:i}));
+  for(const [i,loot] of (s.pendingLoot||[]).entries())if((!loot.actor||loot.actor===c.actor)&&(!loot.location||loot.location===c.site))out.push(action(`collect-${i}`,`Забрати залишену знахідку: ${loot.id}`,0,'light',[],'Потрібне місце в рюкзаку.',{collect:i}));
   return out;
 }
 
@@ -122,6 +123,6 @@ export function leaveItem(state,id){
   // of non-consumable tools. Quest items are stored separately and never dropped.
   const s=clone(state);
   if(s.health<=0||s.pendingBattle||s.importantItems.includes(id)||!removeItem(s,id,1))return{state:clone(state),accepted:false};
-  s.pendingLoot=s.pendingLoot||[];s.pendingLoot.push({id,qty:1,scene:s.scene,actor:activeActor(s)});
+  s.pendingLoot=s.pendingLoot||[];s.pendingLoot.push({id,qty:1,scene:s.scene,actor:activeActor(s),location:locationContext(s).site});
   return{state:normalizeState(s),accepted:true};
 }

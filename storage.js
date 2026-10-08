@@ -35,8 +35,8 @@ export async function persistentRead(key){
 export async function persistentWrite(key,value){
  // Keep the untouched legacy snapshot before a migration or a first new-version write.
  if(!key.includes(':backup:')){
-   const old=await persistentRead(key);let legacy=false;try{legacy=Boolean(old)&&Number(JSON.parse(old)?.schemaVersion||0)<12}catch{}
-   if(legacy){const backup=key+':backup:v11';if(await persistentRead(backup)===null){const a=localSet(backup,old),b=await idbSet(backup,old);if(!a&&!b)throw Error('Cannot back up legacy save')}}
+   const old=await persistentRead(key);let legacy=false;try{legacy=Boolean(old)&&Number(JSON.parse(old)?.schemaVersion||0)<13}catch{}
+   if(legacy){const oldSchema=Number(JSON.parse(old)?.schemaVersion||0);const backup=key+':backup:v'+(oldSchema<12?11:12);if(await persistentRead(backup)===null){const a=localSet(backup,old),b=await idbSet(backup,old);if(!a&&!b)throw Error('Cannot back up legacy save')}}
  }
  const a=localSet(key,value),b=await idbSet(key,value);if(!a&&!b)throw Error('Both save stores are unavailable');return{localStorage:a,indexedDB:b};
 }
@@ -71,15 +71,15 @@ export async function exportBackup(){
    const keys=[AUTO(run),...[1,2,3].map(slot=>MANUAL(run,slot)),...Array.from({length:20},(_,i)=>CHAPTER(run,i+1))];
    for(const key of keys){const raw=await persistentRead(key);if(raw!==null)saves[key]=JSON.parse(raw)}
  }
- return{format:'des-ne-tam-backup',version:1,schemaVersion:12,origin:location.origin,exportedAt:new Date().toISOString(),saves};
+ return{format:'des-ne-tam-backup',version:1,schemaVersion:13,origin:location.origin,exportedAt:new Date().toISOString(),saves};
 }
 export function validateBackup(bundle){
  if(bundle?.format!=='des-ne-tam-backup'||bundle.version!==1||!bundle.saves||Array.isArray(bundle.saves)||typeof bundle.saves!=='object')throw Error('Це не файл збережень «Десь не там».');
- if(Number(bundle.schemaVersion)>12)throw Error('Цей сейв потребує новішої версії гри.');
+ if(Number(bundle.schemaVersion)>13)throw Error('Цей сейв потребує новішої версії гри.');
  const prefix=SAVE_NAMESPACE.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  const pattern=new RegExp(`^${prefix}:run:(1|2|3|99):(auto|manual:[1-3]|chapter:([1-9]|1[0-9]|20))$`);
  for(const [key,state] of Object.entries(bundle.saves)){
-   if(!pattern.test(key)||!state||typeof state!=='object'||!state.story||typeof (state.story.sceneId||state.scene)!=='string'||Number(state.schemaVersion)>12)throw Error('Файл містить некоректний слот або стан.');
+   if(!pattern.test(key)||!state||typeof state!=='object'||!state.story||typeof (state.story.sceneId||state.scene)!=='string'||Number(state.schemaVersion)>13)throw Error('Файл містить некоректний слот або стан.');
    if(Number(key.split(':run:')[1].split(':')[0])!==Number(state.runId))throw Error('Номер проходження не відповідає слоту.');
  }
  return true;

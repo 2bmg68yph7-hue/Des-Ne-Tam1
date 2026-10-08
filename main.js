@@ -1,3 +1,7 @@
+import {mapMarkup} from './map-ui.js';
+import {LOCATIONS} from './locations.js';
+import {bagLimits,carriedWeight} from './carry.js';
+import {canExplore,currentLocation,locationLabel,awayFromStory,expeditionActions,performExpeditionAction,travel,returnToStory} from './expedition.js';
 import {asset} from './assets.js';
 import {installInterface,updateMenuTitle,overviewMarkup,heroMarkup,charactersMarkup,relationsMarkup,relationshipHint,readingPreferences,saveReadingPreferences} from './interface.js';
 import {CHAPTER_META,chapterOf} from './chapters.js';
@@ -35,7 +39,7 @@ let persistChain=Promise.resolve();
 let sfxTimers=[];
 let deathTimer=null;
 let lastSleepMessage='';
-const categories=['all','Їжа та напої','Ліки','Зброя','Якась хуйня'];
+const categories=['all','Їжа та напої','Ліки','Зброя','Якась хуйня','Матеріали'];
 
 const TESTER_UNLOCK_KEY='des-ne-tam-tester-unlocked-v1';
 const TESTER_CODE_HASH='58346b69699f6dadc90ed95b5dd126bc42de7130d6b8213d83bc5b0cf59e885d';
@@ -304,7 +308,7 @@ async function ensureSceneEntered(scene){
   await persist();
   return true;
 }
-function syncSceneAudio(scene){audioManager.setAtmosphere(scene?.atmosphere||'silent')}
+function syncSceneAudio(scene){const place=G&&awayFromStory(G)?LOCATIONS[currentLocation(G)]:null;audioManager.setAtmosphere(place?(place.indoors?'hut':G.world.weather.rain>0?'rain':'village'):scene?.atmosphere||'silent')}
 async function renderGame(){
   if(!G)return;
   G=normalizeState(syncActor(normalizeState(G)));
@@ -318,7 +322,7 @@ async function renderGame(){
   let scene=getGameScene(G);
   await ensureSceneEntered(scene);
   scene=getGameScene(G);
-  syncSceneAudio(scene);
+  if(awayFromStory(G)){audioManager.setAtmosphere(LOCATIONS[currentLocation(G)].indoors?'hut':G.world.weather.rain>0?'rain':'village')}else syncSceneAudio(scene);
   renderHeader();renderStage(scene);renderStory(scene);renderQuickSlots();renderActiveStates();
   if(!$('#menuOverlay').classList.contains('hidden'))renderMenu();
   if(G.health<=0){clearTimeout(deathTimer);deathTimer=setTimeout(()=>openDeathOverlay(),1600)}else closeDeathOverlay();
@@ -349,7 +353,8 @@ function renderHeader(){
 }
 
 function renderStage(scene){
-  $('#stageContext').innerHTML=`<span>${esc(G.world.location)}</span><span>${activeActor(G)==='evpapiy'?'Євпапій':'Степан'}</span>`;
+  $('#stageContext').innerHTML=`<span>${esc(locationLabel(G))}</span><span>${activeActor(G)==='evpapiy'?'Євпапій':'Степан'}</span>`;
+  if(awayFromStory(G)){const place=LOCATIONS[currentLocation(G)];scene={...scene,background:asset(place.bg),actors:[{src:heroForClothes(),role:activeActor(G)==='evpapiy'?'pigeon':'hero'}]}}
   const root=$('#stageImage');
   root.style.backgroundImage=`linear-gradient(rgba(5,8,6,.05),rgba(5,8,6,.16)),url('${asset(scene.background||'./bg.jpg')}')`;
   root.className=`stage-image ${scene.stageTone||''}`;
@@ -362,6 +367,7 @@ function resolveChoices(scene){const xs=resolveSceneValue(scene.choices||[],G)||
 async function choose(choice){
   if(!G||G.health<=0||actionBusy)return;
   if(choice.menu){openMenu(choice.menu);return}
+  if(awayFromStory(G)){toast('ПОВЕРНІТЬСЯ ДО РОЗМОВИ','Завершіть дослідження через карту.');return}
   actionBusy=true;
   try{
   await audioManager.unlock();
@@ -380,12 +386,13 @@ async function choose(choice){
     return;
   }
 
-  if(choice.next&&G.health>0){const next=routeNext(G,choice.next);G.story.sceneId=next;G.scene=next}
+  if(choice.next&&G.health>0){delete G.expedition;const next=routeNext(G,choice.next);G.story.sceneId=next;G.scene=next}
   await persist();await renderGame();window.scrollTo({top:0,behavior:'instant'});
 }finally{actionBusy=false}
 }
 
 function renderStory(scene){
+  if(awayFromStory(G)){const place=LOCATIONS[currentLocation(G)];$('#storyKicker').textContent='ДОСЛІДЖЕННЯ · '+place.label;$('#storyText').innerHTML=paras(place.description);$('#storyExtras').innerHTML='';$('#storyChoices').innerHTML='<button class=story-choice data-explore-place>Дослідити місце</button><button class=story-choice data-explore-map>Обрати стежку на карті</button><button class=story-choice data-return-story>Повернутися до сюжетного місця</button>';$('#storyChoices [data-explore-place]').onclick=()=>openMenu('place');$('#storyChoices [data-explore-map]').onclick=()=>openMenu('map');$('#storyChoices [data-return-story]').onclick=()=>runExpedition(returnToStory);return}
   $('#storyKicker').textContent=`ГЛАВА ${scene.chapter||G.chapter||1} · ${scene.caption||'ДЕСЬ НЕ ТАМ'}`;
   $('#storyText').innerHTML=paras(resolveSceneValue(scene.text||'',G));
   const n=resolveSceneValue(scene.notice||null,G);
@@ -431,6 +438,7 @@ function renderActiveStates(){
 
 function openMenu(tab='overview'){
   if(!G)return;
+  $('#menuContent').scrollTop=0;
   currentTab=tab;
   document.body.classList.add('menu-open');
   $('#menuOverlay').classList.remove('hidden');
@@ -451,8 +459,10 @@ function renderMenu(){
 }
 
 function renderPlace(){
-  const scene=getGameScene(G),context=locationContext(G,scene),actions=worldActions(G,scene);
-  $('#menuContent').innerHTML=`<div class="section-title"><h2>Місце</h2><span>${esc(PHASE_LABELS[context.phase])} · ${activeActor(G)==='evpapiy'?'Євпапій':'Степан'}</span></div><div class="info-card">${esc(G.world.location)}${context.danger?'<p>Поруч небезпека. Тривалий пошук і відпочинок недоступні.</p>':''}</div><div class="world-actions">${actions.map(a=>`<article class="info-card"><b>${esc(a.label)}</b><p>${esc(a.detail)}</p><button data-world-action="${esc(a.id)}" ${a.done?'disabled':''}>${a.done?'Виконано':a.minutes?`${a.minutes} хв · виконати`:'Забрати'}</button></article>`).join('')||'<div class="empty-state">Зараз зосередьтесь на сюжетній дії. Припаси можна переглянути в інвентарі.</div>'}</div>`;
+  const scene=getGameScene(G),context=locationContext(G,scene),actions=awayFromStory(G)?[]:worldActions(G,scene),extra=expeditionActions(G);
+  $('#menuContent').innerHTML=`<div class="section-title"><h2>Місце</h2><span>${esc(PHASE_LABELS[context.phase])} · ${activeActor(G)==='evpapiy'?'Євпапій':'Степан'}</span></div><div class="info-card">${esc(G.world.location)}${context.danger?'<p>Поруч небезпека. Тривалий пошук і відпочинок недоступні.</p>':''}</div>${canExplore(G)?'<button data-open-travel>Обрати стежку на карті</button>':''}<div class="world-actions">${extra.map(a=>`<article class="info-card"><b>${esc(a.label)}</b><p>${esc(a.detail)}</p><button data-expedition-action="${esc(a.id)}" ${a.done?'disabled':''}>${a.minutes} хв · виконати</button></article>`).join('')}${actions.map(a=>`<article class="info-card"><b>${esc(a.label)}</b><p>${esc(a.detail)}</p><button data-world-action="${esc(a.id)}" ${a.done?'disabled':''}>${a.done?'Виконано':a.minutes?`${a.minutes} хв · виконати`:'Забрати'}</button></article>`).join('')||'<div class="empty-state">Зараз зосередьтесь на сюжетній дії. Припаси можна переглянути в інвентарі.</div>'}</div>`;
+  $('#menuContent [data-open-travel]')?.addEventListener('click',()=>openMenu('map'));
+  $('#menuContent').querySelectorAll('[data-expedition-action]').forEach(b=>b.onclick=()=>runExpedition(s=>performExpeditionAction(s,b.dataset.expeditionAction)));
   $('#menuContent').querySelectorAll('[data-world-action]').forEach(b=>b.onclick=async()=>{
     if(actionBusy||G.health<=0)return;actionBusy=true;
     try{const r=performWorldAction(G,b.dataset.worldAction,getGameScene(G));if(r.accepted===false){toast('НЕДОСТУПНО',r.message);return}G=r.state;notifyEvents(r.events);await persist();await renderGame();renderPlace();toast('ДІЯ ВИКОНАНА',r.message)}finally{actionBusy=false}
@@ -466,7 +476,7 @@ function renderJournal(){
 function renderInventory(){
   const root=$('#menuContent');
   const filtered=G.inventory.filter(s=>inventoryCategory==='all'||ITEM_DEFS[s.id]?.category===inventoryCategory);
-  root.innerHTML=`<div class="section-title"><h2>Інвентар</h2><span>${G.inventory.length}/16 слотів</span></div><div class="category-tabs">${categories.map(c=>`<button data-cat="${esc(c)}" class="${inventoryCategory===c?'active':''}">${c==='all'?'Все':esc(c)}</button>`).join('')}</div><div class="item-grid">${filtered.length?filtered.map(s=>{const d=ITEM_DEFS[s.id]||{};return `<article class="item-card"><div class="item-icon">${d.icon||'◻️'}</div><div class="item-copy"><b>${esc(d.name||s.id)}</b><span>${esc(d.description||'')}</span><small>${esc(d.category||'')} · ×${s.qty}</small><div class="item-actions">${d.useEffects?.length?`<button data-use="${s.id}">Використати</button>`:''}${G.importantItems.includes(s.id)?'':`<button data-leave="${s.id}">Відкласти ×1</button>`}<button data-slot="0" data-item="${s.id}">1</button><button data-slot="1" data-item="${s.id}">2</button><button data-slot="2" data-item="${s.id}">3</button></div></div></article>`}).join(''):'<div class="empty-state">Тут поки пусто.</div>'}</div>`;
+  root.innerHTML=`<div class="section-title"><h2>Інвентар</h2><span>${G.inventory.length}/${bagLimits(G).slots} слотів · ${carriedWeight(G)}/${bagLimits(G).weight} кг</span></div><div class="category-tabs">${categories.map(c=>`<button data-cat="${esc(c)}" class="${inventoryCategory===c?'active':''}">${c==='all'?'Все':esc(c)}</button>`).join('')}</div><div class="item-grid">${filtered.length?filtered.map(s=>{const d=ITEM_DEFS[s.id]||{};return `<article class="item-card"><div class="item-icon">${d.icon||'◻️'}</div><div class="item-copy"><b>${esc(d.name||s.id)}</b><span>${esc(d.description||'')}</span><small>${esc(d.category||'')} · ×${s.qty}</small><div class="item-actions">${d.useEffects?.length?`<button data-use="${s.id}">Використати</button>`:''}${G.importantItems.includes(s.id)?'':`<button data-leave="${s.id}">Відкласти ×1</button>`}<button data-slot="0" data-item="${s.id}">1</button><button data-slot="1" data-item="${s.id}">2</button><button data-slot="2" data-item="${s.id}">3</button></div></div></article>`}).join(''):'<div class="empty-state">Тут поки пусто.</div>'}</div>`;
   root.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{inventoryCategory=b.dataset.cat;renderInventory()});
   root.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>consumeItem(b.dataset.use));
   root.querySelectorAll('[data-leave]').forEach(b=>b.onclick=async()=>{if(actionBusy)return;actionBusy=true;try{const r=leaveItem(G,b.dataset.leave);if(!r.accepted)return;G=r.state;await persist();await renderGame();toast('ВІДКЛАДЕНО','Річ можна забрати назад у розділі «Місце».')}finally{actionBusy=false}});
@@ -650,37 +660,14 @@ function renderRelations(){
   $('#menuContent').innerHTML=`<div class="section-title"><h2>Стосунки</h2></div><div class="info-card">Персонажі памʼятають, шо ви витворяли. Що саме вони про вас думають – доведеться поняти по ходу.</div>${known.length?known.map(r=>`<article class="relation-card"><b>${esc(r.name)}</b><span>Що саме цей персонаж про вас думає, доведеться поняти по ходу.</span></article>`).join(''):'<div class="empty-state">Ше нема кого бісити.</div>'}`;
 }
 
+async function runExpedition(operation){
+ if(actionBusy||!G||G.health<=0||G.pendingBattle)return;actionBusy=true;
+ try{const r=operation(G);if(!r.accepted){toast('НЕДОСТУПНО',r.message);return}G=r.state;notifyEvents(r.events);await persist();await renderGame();toast('ДОСЛІДЖЕННЯ',r.message)}finally{actionBusy=false}
+}
 function renderMap(){
-  const unlocked=Boolean(G.flags.mapUnlocked);
-  const scene=String(G.scene||G.story?.sceneId||'');
-  const loc=String(G.world?.location||'');
-
-  const knownHome=unlocked;
-  const knownWake=Boolean(G.flags.chapter2Started)||scene.startsWith('ch2_');
-  const knownShed=Boolean(G.flags.heardShedConversation||G.flags.heardShedBang||G.flags.pigeonSawInsideShed||G.flags.ignoredShed)||['ch2_pee','ch2_bang','ch2_bang3','ch2_after_bang','ch2_side','ch2_garlic','ch2_salo','ch2_pigeon_scared','ch2_leave','ch2_figure','ch2_end'].includes(scene);
-
-  const currentHome=/хат|криниц/i.test(loc)&&!knownWake;
-  const currentWake=/помин|стол/i.test(loc);
-  const currentShed=/сарай/i.test(loc);
-
-  const marker=(cls,label,x,y,current=false)=>`<div class="map-marker ${cls}${current?' current':''}" style="left:${x}%;top:${y}%">${label}</div>`;
-  const unknown=(x,y)=>`<div class="map-unknown" style="left:${x}%;top:${y}%"><span>?</span></div>`;
-
-  const overlays = unlocked ? [
-    knownHome ? marker('known','Хатина з криницею',27,70,currentHome) : unknown(27,70),
-    knownWake ? marker('known','Двір з поминками',64,39,currentWake) : unknown(64,39),
-    knownShed ? marker('known small','Сарай',83,47,currentShed) : unknown(83,47),
-    unknown(21,18),
-    unknown(45,13),
-    unknown(84,20)
-  ].join('') : '';
-
-  $('#menuContent').innerHTML=`<div class="section-title"><h2>Карта</h2></div>
-    <div class="map-visual ${unlocked?'':'locked'}">
-      <img src="./map_village.jpg?v=084" alt="Карта села">
-      ${unlocked?`<div class="map-overlays">${overlays}</div>`:`<div class="map-lock-copy"><b>ПОКИ ЗАКРИТО</b><span>Спочатку треба хоча б трохи розібратись, де ви взагалі опинились.</span></div>`}
-    </div>
-    ${unlocked?`<div class="map-help">Підписані тільки місця, де ви вже були. Решта – хуй зна шо.</div>`:''}`;
+ const root=$('#menuContent');root.innerHTML=mapMarkup(G);
+ root.querySelectorAll('[data-travel]').forEach(b=>b.onclick=()=>runExpedition(s=>travel(s,b.dataset.travel)));
+ root.querySelector('[data-return-story]')?.addEventListener('click',()=>runExpedition(returnToStory));
 }
 
 function renderShop(){

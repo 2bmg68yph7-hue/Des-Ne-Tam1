@@ -1,4 +1,5 @@
 import {ACTIVITY_COSTS} from './balance.js';
+import {bagLimits,canCarryWeight} from './carry.js';
 import {STAT_KEYS} from './config.js?v=096b';
 import {STATUS_DEFS,CLOTHES,ITEM_DEFS} from './data.js?v=096b';
 import {chapterOf} from './chapters.js';
@@ -10,7 +11,7 @@ const DEFAULT_STAT_LEVELS={strength:2,attention:2,agility:2,charisma:2,pofigism:
 function defaultHeroProgression(){return {level:1,xp:0,xpToNext:100,points:0}}
 function defaultEvpProgression(){return {level:1,xp:0,xpToNext:100,points:0,attack:1,aggression:1,health:1}}
 export function createInitialState(runId=1){return {
- schemaVersion:12,runId,createdAt:Date.now(),updatedAt:Date.now(),lastAutosaveAt:null,
+ schemaVersion:13,runId,createdAt:Date.now(),updatedAt:Date.now(),lastAutosaveAt:null,
  chapter:1,scene:'intro',story:{chapter:1,sceneId:'intro',entered:[],finished:false},clock:{totalMinutes:400},
  health:100,needs:{satiety:75,water:42,energy:65},wetness:0,stats:defaultStats(),heroProgression:defaultHeroProgression(),
  activeStatuses:['hangover'],discoveredStatuses:['hangover'],statusTimers:{},unlocks:{yebatorium:false,sunsetContempt:false},
@@ -25,7 +26,7 @@ export function createInitialState(runId=1){return {
 }}
 export function normalizeState(raw){
  const legacySchema=Number(raw?.schemaVersion||0);
- const base=createInitialState(Number(raw?.runId||1)),s={...base,...clone(raw||{})};s.schemaVersion=12;
+ const base=createInitialState(Number(raw?.runId||1)),s={...base,...clone(raw||{})};s.schemaVersion=13;
  s.clock={...base.clock,...(s.clock||{})};s.needs={...base.needs,...(s.needs||{})};s.unlocks={...base.unlocks,...(s.unlocks||{})};s.flags={...base.flags,...(s.flags||{})};s.equipment={...base.equipment,...(s.equipment||{})};
  s.story={...base.story,...(s.story||{})};s.story.entered=Array.isArray(s.story.entered)?s.story.entered:[];s.scene=s.story.sceneId||s.scene||'intro';
  // Міграція з v0.7.1: фінальний екран першої глави тепер є стартом другої.
@@ -122,7 +123,7 @@ export function removeStatus(state,id){const had=state.activeStatuses.includes(i
 function expireTimedStatuses(state){const e=[];for(const [id,until] of Object.entries(state.statusTimers||{}))if(state.clock.totalMinutes>=Number(until))e.push(...removeStatus(state,id));return e}
 export function itemCount(state,id){return(state.inventory||[]).filter(x=>x.id===id).reduce((n,x)=>n+Number(x.qty||0),0)}
 export function removeItem(state,id,qty=1){if(!Number.isInteger(qty)||qty<=0||itemCount(state,id)<qty)return false;let left=qty;for(let i=state.inventory.length-1;i>=0&&left>0;i--){const s=state.inventory[i];if(s.id!==id)continue;const take=Math.min(left,s.qty);s.qty-=take;left-=take;if(s.qty<=0)state.inventory.splice(i,1)}clearInvalidQuickSlots(state);return true}
-export function addItem(state,id,qty=1){const d=ITEM_DEFS[id];if(!d||!Number.isInteger(qty)||qty<=0)return false;const stack=Math.max(1,Number(d.stack||1)),capacity=state.inventory.filter(x=>x.id===id).reduce((n,x)=>n+Math.max(0,stack-x.qty),0)+Math.max(0,16-state.inventory.length)*stack;if(capacity<qty)return false;let left=qty;for(const s of state.inventory){if(s.id!==id||s.qty>=stack)continue;const add=Math.min(stack-s.qty,left);s.qty+=add;left-=add;if(left<=0)return true}while(left>0){const add=Math.min(stack,left);state.inventory.push({id,qty:add});left-=add}return true}
+export function addItem(state,id,qty=1){const d=ITEM_DEFS[id];if(!d||!Number.isInteger(qty)||qty<=0)return false;const stack=Math.max(1,Number(d.stack||1)),capacity=state.inventory.filter(x=>x.id===id).reduce((n,x)=>n+Math.max(0,stack-x.qty),0)+Math.max(0,bagLimits(state).slots-state.inventory.length)*stack;if(capacity<qty||!canCarryWeight(state,id,qty))return false;let left=qty;for(const s of state.inventory){if(s.id!==id||s.qty>=stack)continue;const add=Math.min(stack-s.qty,left);s.qty+=add;left-=add;if(left<=0)return true}while(left>0){const add=Math.min(stack,left);state.inventory.push({id,qty:add});left-=add}return true}
 export function clearInvalidQuickSlots(state){state.quickSlots=(state.quickSlots||[null,null,null]).map(id=>id&&itemCount(state,id)>0?id:null)}
 export function assignQuickSlot(state,i,id){if(i<0||i>2)return false;if(id!==null&&itemCount(state,id)<=0)return false;state.quickSlots[i]=id;return true}
 export function useItem(state,id){const d=ITEM_DEFS[id];if(state.health<=0||!d||itemCount(state,id)<=0||!d.useEffects?.length)return{state,used:false,events:[]};const r=executeAction(state,{id:`use_${id}`,effects:d.useEffects,hiddenEffects:[{type:'itemRemove',id,qty:1}]});return{...r,used:r.accepted!==false}}

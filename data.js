@@ -58,6 +58,17 @@ export const CLOTHES={
 };
 
 export const ITEM_DEFS={
+  berries:{name:'Ягоди',icon:'🫐',category:'Їжа та напої',stack:5,description:'Зібрані на узліссі. Невеликий перекус.',useEffects:[{type:'need',key:'satiety',value:12},{type:'need',key:'water',value:3}]},
+  mushrooms:{name:'Їстівні гриби',icon:'🍄',category:'Їжа та напої',stack:4,description:'Для юшки; сирими не їсти.'},
+  herbs:{name:'Лікувальні трави',icon:'🌿',category:'Матеріали',stack:5,description:'Для теплого настою або перев’язки.'},
+  wood:{name:'Сухі гілки',icon:'🪵',category:'Матеріали',stack:3,description:'Для приготування й пастки.'},
+  cloth:{name:'Чиста тканина',icon:'🧵',category:'Матеріали',stack:4,description:'Для перев’язки або мотузки.'},
+  rope:{name:'Мотузка',icon:'➰',category:'Матеріали',stack:3,description:'Для простої пастки.'},
+  raw_meat:{name:'Дрібна дичина',icon:'🥩',category:'Їжа та напої',stack:3,description:'Спершу приготувати біля вогню.'},
+  stew:{name:'Гаряча юшка',icon:'🍲',category:'Їжа та напої',stack:3,description:'Відновлює ситість і трохи води.',useEffects:[{type:'need',key:'satiety',value:45},{type:'need',key:'water',value:10}]},
+  tea:{name:'Трав’яний настій',icon:'🍵',category:'Їжа та напої',stack:3,description:'Вода, трохи лікування та полегшення голови.',useEffects:[{type:'need',key:'water',value:25},{type:'health',value:3},{type:'statusRemove',id:'hangover'}]},
+  bandage:{name:'Трав’яна перев’язка',icon:'🩹',category:'Ліки',stack:4,description:'Відновлює 12% здоров’я й допомагає із забиттям.',useEffects:[{type:'health',value:12},{type:'statusRemove',id:'bump'}]},
+  trap:{name:'Проста пастка',icon:'🪤',category:'Матеріали',stack:1,description:'На березі або узліссі. Перевірити не раніше ніж за 90 хвилин.'},
   water:{name:'Вода',icon:'💧',category:'Їжа та напої',stack:5,description:'Звичайна вода.',useEffects:[{type:'need',key:'water',value:30}]},
   salo:{name:'Сало',icon:'🥓',category:'Їжа та напої',stack:5,description:'Можна зʼїсти. А можна підкупити голуба.',useEffects:[{type:'need',key:'satiety',value:25}]},
   vodka:{name:'Горілка',icon:'🍾',category:'Їжа та напої',stack:2,description:'Пахне так, що вже страшно.',useEffects:[{type:'statusAdd',id:'tipsy'}]},

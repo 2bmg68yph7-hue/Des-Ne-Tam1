@@ -1,0 +1,78 @@
+{
+  "suite": "expedition",
+  "results": [
+    {
+      "name": "travel changes time, needs and location while preserving story",
+      "passed": true
+    },
+    {
+      "name": "forest is adjacent unknown until visited",
+      "passed": true
+    },
+    {
+      "name": "visiting reveals a saved place",
+      "passed": true
+    },
+    {
+      "name": "resource exhaustion rejects repeat with no time or reward",
+      "passed": true
+    },
+    {
+      "name": "revisiting cannot refill stock",
+      "passed": true
+    },
+    {
+      "name": "travel, stock and actor survive reload",
+      "passed": true
+    },
+    {
+      "name": "stock regeneration requires game time",
+      "passed": true
+    },
+    {
+      "name": "night makes actual travel slower",
+      "passed": true
+    },
+    {
+      "name": "pigeon has four slots and two kilograms",
+      "passed": true
+    },
+    {
+      "name": "pigeon cannot carry an oversized resource bundle",
+      "passed": true
+    },
+    {
+      "name": "craft atomically consumes actual materials",
+      "passed": true
+    },
+    {
+      "name": "failed recipe cannot spend time",
+      "passed": true
+    },
+    {
+      "name": "cooking requires actual fire location",
+      "passed": true
+    },
+    {
+      "name": "a trap needs elapsed time",
+      "passed": true
+    },
+    {
+      "name": "trap returns tool and finite prey",
+      "passed": true
+    },
+    {
+      "name": "exhausted return has a costly route and no soft lock",
+      "passed": true
+    },
+    {
+      "name": "chapter 7 cannot leave fog or reveal church",
+      "passed": true
+    },
+    {
+      "name": "old overweight inventory and author fields survive migration",
+      "passed": true
+    }
+  ],
+  "errors": []
+}
